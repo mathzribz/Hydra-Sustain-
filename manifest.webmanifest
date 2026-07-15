@@ -1,0 +1,19 @@
+{
+  "name": "HYDRA Sustain — Sistema de Monitoramento Integrado",
+  "short_name": "HYDRA Sustain",
+  "description": "Gestão de pessoas, horários, ausências, plano de desenvolvimento e cronograma da equipe de robótica.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0D0A0A",
+  "theme_color": "#0D0A0A",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,2036 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HYDRA SUSTAIN — Sistema de Monitoramento Integrado</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0D0A0A">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HYDRA Sustain">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#0D0A0A;
+  --bg-panel:#181212;
+  --bg-raised:#221A1A;
+  --bg-input:#140F0F;
+  --line:#33201F;
+  --line-bright:#4A2C2A;
+  --text:#F2E8E6;
+  --text-muted:#AD9694;
+  --text-dim:#6E5957;
+  --cyan:#E5382A;
+  --cyan-dim:rgba(229,56,42,0.16);
+  --amber:#E8A63D;
+  --amber-dim:rgba(232,166,61,0.14);
+  --green:#5FCB82;
+  --green-dim:rgba(95,203,130,0.14);
+  --red:#FF5A46;
+  --red-dim:rgba(255,90,70,0.16);
+  --font-display:'Chakra Petch','Segoe UI',sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  background-color:var(--bg-void);
+  background-image:
+    linear-gradient(rgba(229,56,42,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(229,56,42,0.045) 1px, transparent 1px);
+  background-size:28px 28px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--cyan);}
+button{font-family:var(--font-body); cursor:pointer;}
+input,select,textarea{font-family:var(--font-body);}
+::selection{background:var(--cyan-dim); color:var(--text);}
+:focus-visible{outline:2px solid var(--cyan); outline-offset:2px;}
+
+/* ---------- layout shell ---------- */
+#root{min-height:100vh;}
+.hidden{display:none !important;}
+
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 22px; border-bottom:1px solid var(--line);
+  background:rgba(27,33,40,0.7); backdrop-filter:blur(6px);
+  position:sticky; top:0; z-index:20;
+}
+.brand{display:flex; align-items:center; gap:10px;}
+.brand-mark{
+  width:30px; height:30px; border:2px solid var(--cyan); border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-weight:700; color:#0D0A0A; background:var(--cyan); font-size:13px;
+  box-shadow:0 0 14px rgba(229,56,42,0.35);
+}
+.brand-text{font-family:var(--font-display); font-weight:600; letter-spacing:0.5px; font-size:16px;}
+.brand-sub{font-family:var(--font-mono); font-size:10px; color:var(--text-dim); letter-spacing:1.5px; text-transform:uppercase;}
+.topbar-right{display:flex; align-items:center; gap:14px;}
+.session-chip{
+  display:flex; align-items:center; gap:8px; padding:6px 12px;
+  border:1px solid var(--line); border-radius:20px; background:var(--bg-raised);
+  font-size:12.5px;
+}
+.role-pill{
+  font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.8px;
+  padding:2px 8px; border-radius:10px; font-weight:600;
+}
+.role-admin{background:var(--red-dim); color:var(--red);}
+.role-editor{background:var(--amber-dim); color:var(--amber);}
+.role-viewer{background:var(--cyan-dim); color:var(--cyan);}
+.btn{
+  font-family:var(--font-body); font-weight:600; font-size:13px;
+  padding:8px 16px; border-radius:6px; border:1px solid var(--line-bright);
+  background:var(--bg-raised); color:var(--text); transition:all .15s ease;
+}
+.btn:hover{border-color:var(--cyan); color:var(--cyan);}
+.btn-primary{background:var(--cyan); color:#0D1418; border-color:var(--cyan); font-weight:700;}
+.btn-primary:hover{background:#6EE0E7; color:#0D1418; opacity:.95;}
+.btn-ghost{background:transparent; border-color:transparent; color:var(--text-muted);}
+.btn-ghost:hover{color:var(--cyan); border-color:transparent;}
+.btn-danger{border-color:var(--red);color:var(--red); background:transparent;}
+.btn-danger:hover{background:var(--red-dim);}
+.btn-sm{padding:5px 10px; font-size:12px; border-radius:5px;}
+.btn:disabled{opacity:.4; cursor:not-allowed;}
+
+.app-body{display:flex; min-height:calc(100vh - 60px);}
+
+.sidebar{
+  width:210px; flex-shrink:0; border-right:1px solid var(--line);
+  padding:18px 10px; display:flex; flex-direction:column; gap:2px;
+}
+.nav-item{
+  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:6px;
+  color:var(--text-muted); font-size:13.5px; font-weight:500; text-decoration:none;
+  border:1px solid transparent; background:none; width:100%; text-align:left;
+}
+.nav-item:hover{color:var(--text); background:var(--bg-panel);}
+.nav-item.active{color:var(--cyan); background:var(--cyan-dim); border-color:rgba(79,209,217,0.3);}
+.nav-icon{width:16px; text-align:center; font-family:var(--font-mono); font-size:13px;}
+.nav-section-label{font-family:var(--font-mono); font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1.2px; padding:14px 12px 6px;}
+
+.main{flex:1; padding:22px 26px 60px; max-width:1180px;}
+
+h1,h2,h3{font-family:var(--font-display); font-weight:600; letter-spacing:0.2px;}
+.page-title{font-size:22px; margin-bottom:4px;}
+.page-sub{color:var(--text-muted); font-size:13px; margin-bottom:22px;}
+.eyebrow{font-family:var(--font-mono); font-size:10.5px; color:var(--cyan); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;}
+
+/* ---------- panel / bracket signature ---------- */
+.panel{
+  position:relative; background:var(--bg-panel); border:1px solid var(--line);
+  border-radius:6px; padding:18px; margin-bottom:18px;
+}
+.panel::before,.panel::after{
+  content:''; position:absolute; width:12px; height:12px; pointer-events:none; opacity:.55;
+}
+.panel::before{top:-1px; left:-1px; border-top:2px solid var(--cyan); border-left:2px solid var(--cyan); border-top-left-radius:3px;}
+.panel::after{bottom:-1px; right:-1px; border-bottom:2px solid var(--cyan); border-right:2px solid var(--cyan); border-bottom-right-radius:3px;}
+.panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+
+.panel-spotlight{
+  position:relative; background:linear-gradient(135deg, rgba(232,166,61,0.10), rgba(27,18,18,0.4) 60%);
+  border:1px solid rgba(232,166,61,0.45); border-radius:8px; padding:18px; margin-bottom:20px;
+  box-shadow:0 0 0 1px rgba(232,166,61,0.08), 0 8px 28px rgba(232,166,61,0.10);
+}
+.panel-spotlight::before,.panel-spotlight::after{content:''; position:absolute; width:16px; height:16px; pointer-events:none;}
+.panel-spotlight::before{top:-1px; left:-1px; border-top:2px solid var(--amber); border-left:2px solid var(--amber); border-top-left-radius:4px;}
+.panel-spotlight::after{bottom:-1px; right:-1px; border-bottom:2px solid var(--amber); border-right:2px solid var(--amber); border-bottom-right-radius:4px;}
+.spotlight-head{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+.spotlight-icon{
+  width:34px; height:34px; border-radius:50%; background:var(--amber-dim); border:1px solid rgba(232,166,61,0.5);
+  display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;
+}
+.spotlight-title{font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--amber); letter-spacing:0.2px;}
+.spotlight-sub{font-family:var(--font-mono); font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-top:1px;}
+.spotlight-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px;}
+.spotlight-col-title{font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:var(--amber); margin-bottom:8px; opacity:0.85;}
+.birthday-row{display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid rgba(232,166,61,0.14);}
+.birthday-row:last-child{border-bottom:none;}
+.birthday-date{
+  font-family:var(--font-mono); font-size:11px; font-weight:600; color:var(--amber); background:var(--amber-dim);
+  border-radius:5px; padding:3px 7px; flex-shrink:0; min-width:38px; text-align:center;
+}
+.panel-title{font-family:var(--font-display); font-size:14.5px; font-weight:600;}
+.panel-title small{display:block; font-family:var(--font-mono); font-size:10px; color:var(--text-dim); font-weight:400; letter-spacing:0.5px; margin-top:2px;}
+
+/* ---------- KPI strip ---------- */
+.kpi-strip{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:20px;}
+.kpi{background:var(--bg-panel); border:1px solid var(--line); border-radius:6px; padding:14px 16px; position:relative; overflow:hidden;}
+.kpi::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--kpi-color,var(--cyan));}
+.kpi-label{font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:6px;}
+.kpi-value{font-family:var(--font-display); font-size:26px; font-weight:700; color:var(--kpi-color,var(--cyan));}
+.kpi-hint{font-size:11px; color:var(--text-muted); margin-top:2px;}
+
+/* ---------- table ---------- */
+table{width:100%; border-collapse:collapse; font-size:13px;}
+th{
+  text-align:left; font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase;
+  letter-spacing:0.6px; color:var(--text-dim); font-weight:600; padding:8px 10px;
+  border-bottom:1px solid var(--line-bright);
+}
+td{padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(79,209,217,0.03);}
+.table-wrap{overflow-x:auto;}
+
+.badge{
+  display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:10.5px;
+  padding:3px 9px; border-radius:12px; font-weight:600; letter-spacing:0.3px; text-transform:uppercase;
+  white-space:nowrap;
+}
+.badge-dot{width:6px; height:6px; border-radius:50%; background:currentColor;}
+.badge-green{background:var(--green-dim); color:var(--green);}
+.badge-amber{background:var(--amber-dim); color:var(--amber);}
+.badge-red{background:var(--red-dim); color:var(--red);}
+.badge-cyan{background:var(--cyan-dim); color:var(--cyan);}
+.badge-gray{background:var(--bg-raised); color:var(--text-muted);}
+
+.subteam-tag{font-size:11px; padding:2px 8px; border-radius:4px; background:var(--bg-raised); color:var(--text-muted); border:1px solid var(--line);}
+
+/* ---------- forms ---------- */
+.field{margin-bottom:13px;}
+.field label{display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:5px;}
+.field input,.field select,.field textarea{
+  width:100%; background:var(--bg-input); border:1px solid var(--line-bright); color:var(--text);
+  padding:9px 11px; border-radius:5px; font-size:13.5px;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--cyan);}
+.field textarea{resize:vertical; min-height:70px;}
+.pw-field-wrap{position:relative;}
+.pw-field-wrap input{padding-right:40px;}
+.pw-toggle-btn{
+  position:absolute; right:4px; top:50%; transform:translateY(-50%); background:none; border:none;
+  color:var(--text-dim); font-size:15px; cursor:pointer; padding:6px 8px; line-height:1;
+}
+.pw-toggle-btn:hover{color:var(--cyan);}
+.link-btn{background:none; border:none; color:var(--cyan); font-size:12.5px; font-weight:600; padding:0; text-decoration:underline; cursor:pointer;}
+.form-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.form-row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
+.form-actions{display:flex; gap:10px; margin-top:6px;}
+
+/* ---------- member card grid ---------- */
+.member-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px;}
+.member-card{
+  position:relative; background:var(--bg-panel); border:1px solid var(--line); border-radius:6px;
+  padding:16px; cursor:pointer; transition:border-color .15s ease;
+}
+.member-card:hover{border-color:var(--cyan);}
+.member-card::before,.member-card::after{content:''; position:absolute; width:10px; height:10px; opacity:0; transition:opacity .15s ease;}
+.member-card::before{top:-1px; left:-1px; border-top:2px solid var(--cyan); border-left:2px solid var(--cyan);}
+.member-card::after{bottom:-1px; right:-1px; border-bottom:2px solid var(--cyan); border-right:2px solid var(--cyan);}
+.member-card:hover::before,.member-card:hover::after{opacity:1;}
+.member-avatar{
+  width:38px; height:38px; border-radius:6px; background:var(--bg-raised); border:1px solid var(--line-bright);
+  display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700;
+  color:var(--cyan); font-size:15px; margin-bottom:10px;
+}
+.member-name{font-family:var(--font-display); font-weight:600; font-size:14.5px; margin-bottom:2px;}
+.member-role{font-size:11.5px; color:var(--text-muted); margin-bottom:10px;}
+.member-meta-row{display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim); font-family:var(--font-mono); margin-top:8px; padding-top:8px; border-top:1px solid var(--line);}
+
+/* ---------- modal ---------- */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(7,9,11,0.72); backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center; z-index:100; padding:20px;
+}
+.modal{
+  background:var(--bg-panel); border:1px solid var(--line-bright); border-radius:8px;
+  max-width:640px; width:100%; max-height:88vh; overflow-y:auto; padding:24px;
+  position:relative;
+}
+.modal-close{position:absolute; top:16px; right:18px; background:none; border:none; color:var(--text-muted); font-size:20px;}
+.modal-close:hover{color:var(--red);}
+.modal-title{font-family:var(--font-display); font-size:18px; margin-bottom:16px; padding-right:24px;}
+.tab-strip{display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:16px;}
+.tab-btn{padding:8px 14px; font-size:12.5px; font-weight:600; color:var(--text-muted); background:none; border:none; border-bottom:2px solid transparent;}
+.tab-btn.active{color:var(--cyan); border-bottom-color:var(--cyan);}
+
+/* ---------- progress bar ---------- */
+.progress-track{height:6px; background:var(--bg-raised); border-radius:4px; overflow:hidden; border:1px solid var(--line);}
+.progress-fill{height:100%; background:var(--cyan); border-radius:4px;}
+
+/* ---------- login ---------- */
+.login-wrap{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;}
+.login-box{width:100%; max-width:400px;}
+.login-brand{display:flex; flex-direction:column; align-items:center; margin-bottom:26px; text-align:center;}
+.login-brand .brand-mark{width:52px; height:52px; font-size:22px; margin-bottom:12px;}
+.login-brand .brand-text{font-size:22px;}
+.auth-switch{display:flex; margin-bottom:20px; border:1px solid var(--line); border-radius:6px; overflow:hidden;}
+.auth-switch button{flex:1; padding:10px; background:var(--bg-panel); border:none; color:var(--text-muted); font-weight:600; font-size:13px;}
+.auth-switch button.active{background:var(--cyan-dim); color:var(--cyan);}
+.hint-box{
+  font-size:11.5px; color:var(--text-dim); background:var(--bg-input); border:1px dashed var(--line-bright);
+  border-radius:5px; padding:10px 12px; margin-top:14px; font-family:var(--font-mono); line-height:1.6;
+}
+.msg{padding:10px 12px; border-radius:5px; font-size:12.5px; margin-bottom:14px;}
+.msg-error{background:var(--red-dim); color:var(--red); border:1px solid rgba(232,96,79,0.3);}
+.msg-ok{background:var(--green-dim); color:var(--green); border:1px solid rgba(95,203,130,0.3);}
+.msg-info{background:var(--cyan-dim); color:var(--cyan); border:1px solid rgba(79,209,217,0.3);}
+
+.empty-state{text-align:center; padding:40px 20px; color:var(--text-dim);}
+.empty-state .em-icon{font-size:26px; margin-bottom:10px; color:var(--text-dim); font-family:var(--font-mono);}
+
+.two-col{display:grid; grid-template-columns:1.4fr 1fr; gap:18px;}
+.hamburger-btn{display:none; background:none; border:1px solid var(--line-bright); color:var(--text); font-size:16px; padding:7px 11px; border-radius:6px;}
+.sidebar-backdrop{display:none;}
+
+@media (max-width:880px){
+  .two-col{grid-template-columns:1fr;}
+  .form-row,.form-row3{grid-template-columns:1fr;}
+  .app-body{flex-direction:column;}
+  .hamburger-btn{display:inline-flex; align-items:center; justify-content:center;}
+  .brand-text{font-size:14px;}
+  .brand-sub{display:none;}
+  .session-chip span:first-child{display:none;}
+  .topbar{padding:10px 12px; gap:8px;}
+  .topbar-right{gap:8px;}
+  .main{padding:14px 14px 70px;}
+
+  .sidebar{
+    position:fixed; top:0; left:0; bottom:0; width:250px; z-index:60;
+    background:var(--bg-panel); border-right:1px solid var(--line-bright);
+    flex-direction:column; overflow-y:auto; overflow-x:hidden;
+    transform:translateX(-104%); transition:transform .22s ease;
+    padding-top:60px; box-shadow:8px 0 30px rgba(0,0,0,0.4);
+  }
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-backdrop.open{
+    display:block; position:fixed; inset:0; background:rgba(7,9,11,0.6); z-index:55;
+  }
+  .nav-item{padding:13px 14px; font-size:14.5px;}
+
+  .modal-overlay{padding:0; align-items:flex-end;}
+  .modal{max-width:100%; width:100%; max-height:92vh; border-radius:14px 14px 0 0; padding:18px;}
+  .kpi-strip{grid-template-columns:repeat(2,1fr);}
+  .member-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
+  .btn{padding:9px 15px;}
+  .btn-sm{padding:7px 12px;}
+  table{font-size:12px;}
+}
+@media (max-width:420px){
+  .kpi-strip{grid-template-columns:1fr 1fr;}
+  .member-grid{grid-template-columns:1fr 1fr;}
+}
+
+.icon-btn{background:none; border:none; color:var(--text-dim); font-size:14px; padding:4px 6px;}
+.icon-btn:hover{color:var(--cyan);}
+.log-item{display:flex; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:12px;}
+.log-item:last-child{border-bottom:none;}
+.log-time{font-family:var(--font-mono); color:var(--text-dim); flex-shrink:0; width:110px;}
+.toast{position:fixed; bottom:20px; right:20px; background:var(--bg-raised); border:1px solid var(--cyan); color:var(--text); padding:12px 18px; border-radius:6px; font-size:13px; z-index:200; box-shadow:0 6px 24px rgba(0,0,0,0.4);}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* =====================================================================
+   HYDRA SUSTAIN — Sistema de Monitoramento Integrado
+   Armazenamento: window.storage (dados compartilhados entre usuários
+   do time). Sem backend próprio — ver observações na resposta.
+===================================================================== */
+
+const PRISTINE_HTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+const STORE_KEYS = {
+  users:'rivet:users', members:'rivet:members', schedules:'rivet:schedules',
+  absences:'rivet:absences', pdp:'rivet:pdp', settings:'rivet:settings', log:'rivet:log',
+  events:'rivet:events', theme:'hydra:theme'
+};
+
+const SUBTEAMS = ['Mecânica','Elétrica','Programação','Estratégia','Design/CAD','Divulgação/Outreach','Gestão'];
+const ABSENCE_TYPES = ['Falta','Atraso','Saída antecipada','Licença/Afastamento'];
+const WEEKDAYS = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+
+let DB = { users:[], members:[], schedules:[], absences:[], pdp:[], settings:{ teamName:'Equipe de Robótica', adminEmail:'' }, log:[], events:[] };
+let THEME = null; // {accent, bg, text} — personalização de cores, local ao navegador/conta
+let SESSION = null; // logged in user object
+let VIEW = 'dashboard';
+let SIDEBAR_OPEN = false;
+let AUTH_MODE = 'login'; // or 'register'
+let AUTH_MSG = null;
+let MODAL = null; // {type:'member'|'confirm', payload}
+let LOADING = true;
+let SYNC_STATUS = null; // null | 'ok' | 'erro' | 'sincronizando'
+let SAVE_QUEUE = {};
+
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function genTempPassword(){
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let out = '';
+  for(let i=0;i<8;i++) out += chars[Math.floor(Math.random()*chars.length)];
+  return out;
+}
+function nowISO(){ return new Date().toISOString(); }
+function fmtDate(iso){ if(!iso) return '—'; const d = new Date(iso); return d.toLocaleDateString('pt-BR'); }
+function fmtDateTime(iso){ if(!iso) return '—'; const d = new Date(iso); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function initials(name){ return (name||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function pwField(labelText, name, id, extraAttrs){
+  return `<div class="field"><label>${esc(labelText)}</label><div class="pw-field-wrap">
+    <input type="password" name="${name}" id="${id}" ${extraAttrs||''}>
+    <button type="button" class="pw-toggle-btn" data-target="${id}" title="Mostrar/ocultar senha">👁</button>
+  </div></div>`;
+}
+function attachPasswordToggles(){
+  document.querySelectorAll('.pw-toggle-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const input = document.getElementById(btn.dataset.target);
+      if(!input) return;
+      input.type = input.type==='password' ? 'text' : 'password';
+      btn.textContent = input.type==='password' ? '👁' : '🙈';
+    };
+  });
+}
+
+function hasCloudStorage(){
+  return typeof window!=='undefined' && !!window.storage && typeof window.storage.get==='function';
+}
+async function storageGet(key, shared){
+  if(hasCloudStorage()){
+    try{ const r = await window.storage.get(key, shared); return r ? JSON.parse(r.value) : null; }
+    catch(e){ return null; }
+  }
+  try{ const raw = localStorage.getItem('hydra_'+key); return raw ? JSON.parse(raw) : null; }
+  catch(e){ return null; }
+}
+async function storageSet(key, value, shared){
+  if(hasCloudStorage()){
+    try{ await window.storage.set(key, JSON.stringify(value), shared); return true; }
+    catch(e){ console.error('storage set failed', key, e); return false; }
+  }
+  try{ localStorage.setItem('hydra_'+key, JSON.stringify(value)); return true; }
+  catch(e){ console.error('local storage set failed', key, e); return false; }
+}
+function downloadAppCopy(){
+  try{
+    downloadFile('HYDRA_Sustain.html', PRISTINE_HTML, 'text/html');
+    toast('Download iniciado — salve o arquivo e abra-o em qualquer navegador, com ou sem internet.');
+  }catch(e){ toast('Não foi possível gerar o arquivo agora.'); }
+}
+
+async function loadAll(){
+  const [users, members, schedules, absences, pdp, settings, log, events, theme] = await Promise.all([
+    storageGet(STORE_KEYS.users, true),
+    storageGet(STORE_KEYS.members, true),
+    storageGet(STORE_KEYS.schedules, true),
+    storageGet(STORE_KEYS.absences, true),
+    storageGet(STORE_KEYS.pdp, true),
+    storageGet(STORE_KEYS.settings, true),
+    storageGet(STORE_KEYS.log, true),
+    storageGet(STORE_KEYS.events, true),
+    storageGet(STORE_KEYS.theme, false),
+  ]);
+  DB.users = users || [];
+  DB.members = members || [];
+  DB.schedules = schedules || [];
+  DB.absences = absences || [];
+  DB.pdp = pdp || [];
+  DB.settings = settings || { teamName:'Equipe de Robótica', adminEmail:'' };
+  if(!DB.settings.subteams || DB.settings.subteams.length===0) DB.settings.subteams = [...SUBTEAMS];
+  if(!DB.settings.absenceTypes || DB.settings.absenceTypes.length===0) DB.settings.absenceTypes = [...ABSENCE_TYPES];
+  if(!DB.settings.alertThreshold) DB.settings.alertThreshold = 3;
+  DB.log = log || [];
+  DB.events = events || [];
+  THEME = theme || null;
+  applyTheme(THEME);
+
+  if(DB.users.length === 0){
+    // bootstrap default admin
+    DB.users.push({
+      id: uid(), nome:'Administrador', email:'admin@equipe.local', senha:'admin123',
+      role:'admin', status:'aprovado', criadoEm: nowISO(), memberId:null
+    });
+    await storageSet(STORE_KEYS.users, DB.users, true);
+    await addLog('Sistema', 'Conta de administrador padrão criada (admin@equipe.local).');
+  }
+
+  if(syncConfigured()){
+    const r = await syncPull();
+    SYNC_STATUS = r.ok ? 'ok' : 'erro';
+  }
+  LOADING = false;
+}
+
+function hexToRgba(hex, alpha){
+  const h = (hex||'').replace('#','');
+  if(h.length!==6) return `rgba(229,56,42,${alpha})`;
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+function applyTheme(theme){
+  const root = document.documentElement.style;
+  const t = theme || {};
+  root.setProperty('--cyan', t.accent || '#E5382A');
+  root.setProperty('--cyan-dim', hexToRgba(t.accent || '#E5382A', 0.16));
+  root.setProperty('--bg-void', t.bg || '#0D0A0A');
+  root.setProperty('--text', t.text || '#F2E8E6');
+}
+async function saveTheme(theme){
+  THEME = theme; await storageSet(STORE_KEYS.theme, theme, false); applyTheme(theme);
+}
+async function saveEvents(){ await storageSet(STORE_KEYS.events, DB.events, true); triggerAutoSync(); }
+
+async function addLog(autor, texto){
+  DB.log.unshift({ id:uid(), autor, texto, em: nowISO() });
+  DB.log = DB.log.slice(0, 120);
+  await storageSet(STORE_KEYS.log, DB.log, true);
+}
+
+// simpler direct saves:
+async function saveUsers(){ await storageSet(STORE_KEYS.users, DB.users, true); triggerAutoSync(); }
+async function saveMembers(){ await storageSet(STORE_KEYS.members, DB.members, true); triggerAutoSync(); }
+async function saveSchedules(){ await storageSet(STORE_KEYS.schedules, DB.schedules, true); triggerAutoSync(); }
+async function saveAbsences(){ await storageSet(STORE_KEYS.absences, DB.absences, true); triggerAutoSync(); }
+async function savePdp(){ await storageSet(STORE_KEYS.pdp, DB.pdp, true); triggerAutoSync(); }
+async function saveSettings(){ await storageSet(STORE_KEYS.settings, DB.settings, true); triggerAutoSync(); }
+
+/* ---------------------- SINCRONIZAÇÃO ONLINE ENTRE INSTALAÇÕES ----------------------
+   Um único arquivo HTML instalado em vários computadores não compartilha dados entre
+   si sozinho. Para permitir que quem instalar o programa em máquinas diferentes veja
+   as mesmas informações "online", conectamos a um serviço de nuvem neutro (JSONBin.io)
+   configurado pelo próprio administrador — ver painel "Sincronização entre computadores"
+   em Configurações. Sem essa configuração, cada instalação permanece independente
+   (como já funcionava antes). ----------------------------------------------------- */
+function syncConfigured(){
+  return !!(DB.settings.syncEnabled && DB.settings.syncBinId && DB.settings.syncApiKey);
+}
+function syncUrl(){ return `https://api.jsonbin.io/v3/b/${DB.settings.syncBinId}`; }
+
+let AUTO_SYNC_TIMER = null;
+function triggerAutoSync(){
+  if(!syncConfigured()) return;
+  clearTimeout(AUTO_SYNC_TIMER);
+  AUTO_SYNC_TIMER = setTimeout(()=>{ syncPush().catch(()=>{}); }, 1200);
+}
+
+async function syncPush(){
+  if(!syncConfigured()) return {ok:false, reason:'não configurado'};
+  const snapshot = { users:DB.users, members:DB.members, schedules:DB.schedules, absences:DB.absences, pdp:DB.pdp, events:DB.events, settings:DB.settings, log:DB.log, savedAt: nowISO() };
+  try{
+    const res = await fetch(syncUrl(), {
+      method:'PUT',
+      headers:{ 'Content-Type':'application/json', 'X-Master-Key': DB.settings.syncApiKey },
+      body: JSON.stringify(snapshot)
+    });
+    if(!res.ok) return {ok:false, reason:`HTTP ${res.status}`};
+    DB.settings.lastSync = snapshot.savedAt;
+    await storageSet(STORE_KEYS.settings, DB.settings, true);
+    return {ok:true};
+  }catch(e){ return {ok:false, reason:'sem conexão ou serviço indisponível'}; }
+}
+
+async function syncPull(){
+  if(!syncConfigured()) return {ok:false, reason:'não configurado'};
+  try{
+    const res = await fetch(syncUrl()+'/latest', { headers:{ 'X-Master-Key': DB.settings.syncApiKey } });
+    if(!res.ok) return {ok:false, reason:`HTTP ${res.status}`};
+    const json = await res.json();
+    const remote = json && json.record;
+    if(!remote) return {ok:false, reason:'nenhum dado na nuvem ainda'};
+    DB.users = remote.users || DB.users;
+    DB.members = remote.members || DB.members;
+    DB.schedules = remote.schedules || DB.schedules;
+    DB.absences = remote.absences || DB.absences;
+    DB.pdp = remote.pdp || DB.pdp;
+    DB.events = remote.events || DB.events;
+    DB.log = remote.log || DB.log;
+    const syncCfg = { syncEnabled:DB.settings.syncEnabled, syncBinId:DB.settings.syncBinId, syncApiKey:DB.settings.syncApiKey };
+    DB.settings = Object.assign({}, remote.settings || DB.settings, syncCfg);
+    DB.settings.lastSync = remote.savedAt || nowISO();
+    await Promise.all([
+      storageSet(STORE_KEYS.users, DB.users, true), storageSet(STORE_KEYS.members, DB.members, true),
+      storageSet(STORE_KEYS.schedules, DB.schedules, true), storageSet(STORE_KEYS.absences, DB.absences, true),
+      storageSet(STORE_KEYS.pdp, DB.pdp, true), storageSet(STORE_KEYS.events, DB.events, true),
+      storageSet(STORE_KEYS.log, DB.log, true), storageSet(STORE_KEYS.settings, DB.settings, true),
+    ]);
+    return {ok:true};
+  }catch(e){ return {ok:false, reason:'sem conexão ou serviço indisponível'}; }
+}
+
+function can(action){
+  if(!SESSION) return false;
+  if(SESSION.role === 'admin') return true;
+  if(SESSION.role === 'editor') return action !== 'gerenciar_usuarios' && action !== 'configuracoes';
+  return false; // viewer
+}
+
+function toast(msg){
+  const el = document.createElement('div');
+  el.className='toast'; el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 2600);
+}
+
+/* ---------------------- RENDER ROOT ---------------------- */
+function render(){
+  const root = document.getElementById('root');
+  if(LOADING){ root.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-family:var(--font-mono);">Carregando sistema…</div>'; return; }
+  if(!SESSION){ root.innerHTML = renderAuth(); attachAuthEvents(); return; }
+  root.innerHTML = renderApp();
+  attachAppEvents();
+  if(MODAL) attachModalEvents();
+}
+
+/* ---------------------- AUTH SCREEN ---------------------- */
+function renderAuth(){
+  const msg = AUTH_MSG ? `<div class="msg msg-${AUTH_MSG.type}">${esc(AUTH_MSG.text)}${AUTH_MSG.notify ? `<br><button class="btn btn-sm" id="notifyAdminBtn" style="margin-top:8px;">✉ Avisar administrador agora por e-mail</button>` : ''}</div>` : '';
+  const body = AUTH_MODE === 'login' ? `
+    <form id="loginForm">
+      <div class="field"><label>E-mail</label><input type="email" name="email" required autocomplete="username"></div>
+      ${pwField('Senha', 'senha', 'loginSenhaInput', 'required autocomplete="current-password"')}
+      <button class="btn btn-primary" style="width:100%;" type="submit">Entrar</button>
+    </form>
+    <div style="text-align:center; margin-top:12px; display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
+      <button class="link-btn" id="showRecoverBtn">Esqueci minha senha</button>
+      <button class="link-btn" id="showAdminRecoverBtn">Sou administrador e perdi o acesso</button>
+    </div>
+    <div class="hint-box">Acesso de demonstração (admin padrão):<br>admin@equipe.local / admin123<br>Recomenda-se trocar a senha em Configurações.</div>
+  ` : AUTH_MODE === 'admin-recover' ? `
+    <form id="adminRecoverForm">
+      <div class="field"><label>E-mail da conta de administrador</label><input type="email" name="email" required></div>
+      <button class="btn btn-primary" style="width:100%;" type="submit">Gerar nova senha de administrador</button>
+    </form>
+    <div style="text-align:center; margin-top:12px;"><button class="link-btn" id="backToLoginBtn2">← Voltar para o login</button></div>
+    <div class="hint-box">Recuperação de emergência: como não há outro administrador para aprovar, se o e-mail informado pertencer a uma conta de administrador ativa, uma nova senha é gerada e exibida aqui na hora. Use com cuidado — qualquer pessoa com acesso a este dispositivo pode usar este recurso.</div>
+  ` : AUTH_MODE === 'recover' ? `
+    <form id="recoverForm">
+      <div class="field"><label>Informe o e-mail cadastrado</label><input type="email" name="email" required></div>
+      <button class="btn btn-primary" style="width:100%;" type="submit">Solicitar redefinição de senha</button>
+    </form>
+    <div style="text-align:center; margin-top:12px;"><button class="link-btn" id="backToLoginBtn">← Voltar para o login</button></div>
+    <div class="hint-box">Como o sistema não tem servidor de e-mail próprio, a redefinição funciona assim: sua solicitação é registrada e um administrador gera uma nova senha temporária, enviada ao seu e-mail cadastrado.</div>
+  ` : `
+    <form id="registerForm">
+      <div class="eyebrow">Dados de acesso</div>
+      <div class="field"><label>Nome completo</label><input type="text" name="nome" required></div>
+      <div class="field"><label>E-mail</label><input type="email" name="email" required></div>
+      ${pwField('Senha', 'senha', 'registerSenhaInput', 'required minlength="4"')}
+      <div class="field"><label>Perfil de acesso solicitado</label>
+        <select name="role">
+          <option value="viewer">Visualização (somente leitura)</option>
+          <option value="editor">Edição (gerencia dados da equipe)</option>
+        </select>
+      </div>
+      <div class="eyebrow" style="margin-top:6px;">Meus dados como membro da equipe</div>
+      <div class="form-row">
+        <div class="field"><label>Subequipe</label><select name="subequipe">${(DB.settings.subteams||SUBTEAMS).map(s=>`<option>${s}</option>`).join('')}</select></div>
+        <div class="field"><label>Contato (telefone/e-mail)</label><input name="contato"></div>
+      </div>
+      <div class="form-row3">
+        <div class="field"><label>Data de nascimento</label><input type="date" name="dataNascimento"></div>
+        <div class="field"><label>Série / ano escolar</label><input name="serie" placeholder="Ex: 9º ano"></div>
+        <div class="field"><label>Turma</label><input name="turma"></div>
+      </div>
+      <div class="form-row3">
+        <div class="field"><label>Turno que estuda</label><select name="turno">
+          <option value="Manhã">Manhã</option><option value="Tarde">Tarde</option><option value="Noite">Noite</option><option value="Integral">Integral</option>
+        </select></div>
+        <div class="field"><label>Tamanho de camisa</label><select name="tamanhoCamisa">${['PP','P','M','G','GG','XG'].map(t=>`<option>${t}</option>`).join('')}</select></div>
+        <div class="field"><label>Ano de entrada na equipe</label><input type="number" name="anoEntrada" min="2000" max="2100" value="${new Date().getFullYear()}"></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;" type="submit">Solicitar cadastro</button>
+    </form>
+    <div class="hint-box">Seu cadastro e seus dados ficarão pendentes até que um administrador aprove o acesso — o perfil de membro é criado automaticamente na aprovação.</div>
+  `;
+  return `
+  <div class="login-wrap">
+    <div class="login-box">
+      <div class="login-brand">
+        <div class="brand-mark">H</div>
+        <div class="brand-text">HYDRA SUSTAIN</div>
+        <div class="brand-sub">Sistema de Monitoramento Integrado</div>
+      </div>
+      <div class="panel">
+        ${(AUTH_MODE!=='recover' && AUTH_MODE!=='admin-recover') ? `<div class="auth-switch">
+          <button data-mode="login" class="${AUTH_MODE==='login'?'active':''}">Entrar</button>
+          <button data-mode="register" class="${AUTH_MODE==='register'?'active':''}">Criar cadastro</button>
+        </div>` : ''}
+        ${msg}
+        ${body}
+      </div>
+      <div class="hint-box" style="text-align:center;">
+        É membro da equipe e ainda não tem cadastro?<br>
+        <button class="btn btn-sm" id="copyRegisterLinkBtn" style="margin-top:8px;">🔗 Copiar link de cadastro</button><br>
+        <span style="display:block; margin-top:6px;">Envie este link para os membros preencherem os próprios dados.</span>
+      </div>
+      <div class="hint-box" style="text-align:center;">
+        Prefere instalar como aplicativo neste dispositivo?<br>
+        <button class="btn btn-sm btn-primary" id="installAppBtn" style="margin-top:8px;">📲 Instalar HYDRA Sustain</button><br>
+        <span style="display:block; margin-top:6px;">Funciona online e, depois de instalado, também offline.</span>
+      </div>
+      <div class="hint-box" style="text-align:center;">
+        Quer usar o HYDRA Sustain sem depender do Claude?<br>
+        <button class="btn btn-sm" id="downloadAppBtn" style="margin-top:8px;">⬇ Baixar versão para instalar no computador</button><br>
+        <span style="display:block; margin-top:6px;">Abre em qualquer navegador, com ou sem internet.</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function attachAuthEvents(){
+  attachPasswordToggles();
+  const installBtn = document.getElementById('installAppBtn');
+  if(installBtn) installBtn.onclick = ()=> installApp();
+  const dlAppBtn = document.getElementById('downloadAppBtn');
+  if(dlAppBtn) dlAppBtn.onclick = ()=> downloadAppCopy();
+  const copyRegBtn = document.getElementById('copyRegisterLinkBtn');
+  if(copyRegBtn) copyRegBtn.onclick = ()=> copyRegisterLink();
+  const notifyBtn = document.getElementById('notifyAdminBtn');
+  if(notifyBtn) notifyBtn.onclick = ()=> notifyAdminOfRegistration(AUTH_MSG && AUTH_MSG.pendingUser);
+  document.querySelectorAll('.auth-switch button').forEach(b=>{
+    b.onclick = ()=>{ AUTH_MODE = b.dataset.mode; AUTH_MSG=null; render(); };
+  });
+  const showRecoverBtn = document.getElementById('showRecoverBtn');
+  if(showRecoverBtn) showRecoverBtn.onclick = ()=>{ AUTH_MODE='recover'; AUTH_MSG=null; render(); };
+  const showAdminRecoverBtn = document.getElementById('showAdminRecoverBtn');
+  if(showAdminRecoverBtn) showAdminRecoverBtn.onclick = ()=>{ AUTH_MODE='admin-recover'; AUTH_MSG=null; render(); };
+  const backToLoginBtn2 = document.getElementById('backToLoginBtn2');
+  if(backToLoginBtn2) backToLoginBtn2.onclick = ()=>{ AUTH_MODE='login'; AUTH_MSG=null; render(); };
+  const adminRecoverForm = document.getElementById('adminRecoverForm');
+  if(adminRecoverForm) adminRecoverForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(adminRecoverForm);
+    const email = fd.get('email').trim().toLowerCase();
+    const admin = DB.users.find(u=>u.email.toLowerCase()===email && u.role==='admin' && u.status==='aprovado');
+    if(!admin){
+      AUTH_MSG = {type:'error', text:'Nenhuma conta de administrador ativa foi encontrada com esse e-mail.'};
+      render(); return;
+    }
+    const temp = genTempPassword();
+    admin.senha = temp; admin.resetRequested = false; admin.resetRequestedAt = null;
+    await saveUsers();
+    await addLog(admin.nome, 'Senha de administrador redefinida via recuperação de emergência.');
+    AUTH_MODE='login';
+    AUTH_MSG = {type:'ok', text:`Nova senha gerada para ${admin.email}: ${temp} — anote agora, ela não será mostrada de novo. Troque-a em Configurações assim que entrar.`};
+    render();
+  };
+  const backToLoginBtn = document.getElementById('backToLoginBtn');
+  if(backToLoginBtn) backToLoginBtn.onclick = ()=>{ AUTH_MODE='login'; AUTH_MSG=null; render(); };
+  const recoverForm = document.getElementById('recoverForm');
+  if(recoverForm) recoverForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(recoverForm);
+    const email = fd.get('email').trim().toLowerCase();
+    const user = DB.users.find(u=>u.email.toLowerCase()===email);
+    if(user && user.status==='aprovado'){
+      user.resetRequested = true; user.resetRequestedAt = nowISO();
+      await saveUsers();
+      await addLog(user.nome, 'Solicitou redefinição de senha (recuperação por e-mail).');
+    }
+    AUTH_MODE='login';
+    AUTH_MSG={type:'ok', text:'Se este e-mail estiver cadastrado e ativo, sua solicitação foi registrada. Um administrador vai gerar uma nova senha e enviá-la para o seu e-mail.'};
+    render();
+  };
+  const lf = document.getElementById('loginForm');
+  if(lf) lf.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(lf);
+    const email = fd.get('email').trim().toLowerCase();
+    const senha = fd.get('senha');
+    const user = DB.users.find(u=>u.email.toLowerCase()===email);
+    if(!user || user.senha !== senha){ AUTH_MSG = {type:'error', text:'E-mail ou senha inválidos.'}; render(); return; }
+    if(user.status === 'pendente'){ AUTH_MSG = {type:'info', text:'Seu cadastro ainda aguarda aprovação do administrador.'}; render(); return; }
+    if(user.status === 'rejeitado'){ AUTH_MSG = {type:'error', text:'Seu cadastro foi recusado pelo administrador.'}; render(); return; }
+    if(user.status === 'inativo'){ AUTH_MSG = {type:'error', text:'Seu acesso foi desativado. Contate o administrador.'}; render(); return; }
+    SESSION = user; AUTH_MSG=null; VIEW='dashboard';
+    await addLog(user.nome, 'Login realizado.');
+    render();
+  };
+  const rf = document.getElementById('registerForm');
+  if(rf) rf.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(rf);
+    const email = fd.get('email').trim().toLowerCase();
+    if(DB.users.some(u=>u.email.toLowerCase()===email)){ AUTH_MSG={type:'error', text:'Já existe um cadastro com este e-mail.'}; render(); return; }
+    const dadosMembro = {
+      subequipe: fd.get('subequipe'), contato: fd.get('contato'), dataNascimento: fd.get('dataNascimento'),
+      serie: fd.get('serie'), turma: fd.get('turma'), turno: fd.get('turno'),
+      tamanhoCamisa: fd.get('tamanhoCamisa'), anoEntrada: Number(fd.get('anoEntrada'))||new Date().getFullYear()
+    };
+    const newUser = { id:uid(), nome:fd.get('nome').trim(), email, senha:fd.get('senha'), role:fd.get('role'), status:'pendente', criadoEm: nowISO(), memberId:null, dadosMembro };
+    DB.users.push(newUser);
+    await saveUsers();
+    await addLog(newUser.nome, 'Solicitou cadastro online (aguardando aprovação).');
+    AUTH_MODE='login'; AUTH_MSG={type:'ok', text:'Cadastro enviado! Aguarde a aprovação do administrador para entrar.', notify:true, pendingUser:{nome:newUser.nome, email:newUser.email, subequipe:dadosMembro.subequipe}};
+    if(window.location.hash) history.replaceState(null,'',window.location.pathname+window.location.search);
+    render();
+  };
+}
+
+function notifyAdminOfRegistration(pendingUser){
+  if(!pendingUser) return;
+  if(!DB.settings.adminEmail){ toast('O e-mail do administrador ainda não foi configurado no sistema.'); return; }
+  const subject = encodeURIComponent(`Novo cadastro pendente no HYDRA Sustain — ${pendingUser.nome}`);
+  const body = encodeURIComponent(
+    `Olá,\n\nUm novo cadastro foi enviado no HYDRA Sustain e aguarda sua aprovação.\n\n`+
+    `Nome: ${pendingUser.nome}\nE-mail: ${pendingUser.email}\nSubequipe informada: ${pendingUser.subequipe||'—'}\n\n`+
+    `Acesse o sistema, entre com sua conta de administrador e vá em "Usuários & Acessos" para aprovar ou recusar.`
+  );
+  window.location.href = `mailto:${DB.settings.adminEmail}?subject=${subject}&body=${body}`;
+}
+
+function sendMemberAccessLink(member){
+  const link = window.location.origin + window.location.pathname + window.location.search + '#cadastro';
+  const subject = encodeURIComponent(`Seu acesso ao ${DB.settings.teamName || 'HYDRA Sustain'}`);
+  const body = encodeURIComponent(
+    `Olá, ${member.nome}!\n\nVocê foi cadastrado(a) como membro no ${DB.settings.teamName || 'HYDRA Sustain'}.\n\n`+
+    `Para acessar o programa, crie seu login pelo link abaixo (informe o mesmo e-mail para o qual esta mensagem foi enviada):\n${link}\n\n`+
+    `Depois de criar seu cadastro de acesso, aguarde a aprovação do administrador para poder entrar.`
+  );
+  window.location.href = `mailto:${member.email}?subject=${subject}&body=${body}`;
+}
+
+function copyRegisterLink(){
+  const link = window.location.origin + window.location.pathname + window.location.search + '#cadastro';
+  const done = ()=> toast('Link de cadastro copiado! Compartilhe com os membros.');
+  const fail = ()=>{
+    if(!SESSION){ AUTH_MODE='register'; AUTH_MSG={type:'info', text:`Copie o link manualmente: ${link}`}; render(); }
+    else{ toast('Não foi possível copiar automaticamente. Link: '+link); }
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(done).catch(fail);
+  } else { fail(); }
+}
+
+/* ---------------------- APP SHELL ---------------------- */
+function navItems(){
+  const items = [
+    {id:'dashboard', label:'Dashboard', icon:'◉'},
+    {id:'membros', label:'Membros', icon:'▤'},
+    {id:'horarios', label:'Horários', icon:'◷'},
+    {id:'ausencias', label:'Faltas & Ausências', icon:'✕'},
+    {id:'cronograma', label:'Cronograma & Agenda', icon:'▦'},
+  ];
+  if(SESSION.role==='admin' || SESSION.memberId) items.push({id:'pdp', label:'Plano de Desenvolvimento', icon:'↗'});
+  items.push({id:'aparencia', label:'Aparência', icon:'◐'});
+  if(SESSION.role==='admin') items.push({id:'usuarios', label:'Usuários & Acessos', icon:'◈'});
+  if(SESSION.role==='admin') items.push({id:'config', label:'Configurações', icon:'⚙'});
+  return items;
+}
+
+function renderApp(){
+  const nav = navItems().map(it=>`
+    <button class="nav-item ${VIEW===it.id?'active':''}" data-view="${it.id}">
+      <span class="nav-icon">${it.icon}</span>${it.label}
+    </button>`).join('');
+
+  const pendingCount = DB.users.filter(u=>u.status==='pendente').length;
+
+  return `
+  <div class="topbar">
+    <div class="brand">
+      <button class="hamburger-btn" id="hamburgerBtn">☰</button>
+      <div class="brand-mark">H</div>
+      <div><div class="brand-text">HYDRA SUSTAIN</div><div class="brand-sub">${esc(DB.settings.teamName||'Equipe de Robótica')}</div></div>
+    </div>
+    <div class="topbar-right">
+      ${syncConfigured() ? `<span class="badge ${SYNC_STATUS==='erro'?'badge-red':'badge-green'}"><span class="badge-dot"></span>${SYNC_STATUS==='erro'?'sincronização com falha':'sincronizado'}</span>` : ''}
+      ${SESSION.role==='admin' && pendingCount>0 ? `<span class="badge badge-amber"><span class="badge-dot"></span>${pendingCount} cadastro(s) pendente(s)</span>` : ''}
+      <div class="session-chip">
+        <span>${esc(SESSION.nome)}</span>
+        <span class="role-pill role-${SESSION.role}">${SESSION.role}</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="installAppBtnTop" title="Instalar como aplicativo">📲</button>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn">Sair</button>
+    </div>
+  </div>
+  <div class="app-body">
+    <div class="sidebar-backdrop ${SIDEBAR_OPEN?'open':''}" id="sidebarBackdrop"></div>
+    <div class="sidebar ${SIDEBAR_OPEN?'open':''}">
+      ${nav}
+    </div>
+    <div class="main">
+      ${renderView()}
+    </div>
+  </div>
+  ${MODAL ? renderModal() : ''}
+  `;
+}
+
+function renderView(){
+  switch(VIEW){
+    case 'dashboard': return viewDashboard();
+    case 'membros': return viewMembros();
+    case 'horarios': return viewHorarios();
+    case 'ausencias': return viewAusencias();
+    case 'cronograma': return viewCronograma();
+    case 'pdp': return (SESSION.role==='admin' || SESSION.memberId) ? viewPdp() : viewNoAccess();
+    case 'aparencia': return viewAparencia();
+    case 'usuarios': return SESSION.role==='admin' ? viewUsuarios() : viewNoAccess();
+    case 'config': return SESSION.role==='admin' ? viewConfig() : viewNoAccess();
+    default: return '';
+  }
+}
+function viewNoAccess(){ return `<div class="empty-state"><div class="em-icon">⛔</div>Você não tem permissão para acessar esta área.</div>`; }
+
+/* ---------------------- DASHBOARD ---------------------- */
+function computeMonitoring(){
+  const activeMembers = DB.members.filter(m=>m.status!=='inativo');
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-30);
+  const recentAbsences = DB.absences.filter(a=> new Date(a.data) >= cutoff);
+  const pendingAbsences = DB.absences.filter(a=>a.status==='Pendente');
+  const byMember = {};
+  recentAbsences.forEach(a=>{ byMember[a.memberId]=(byMember[a.memberId]||0)+1; });
+  const threshold = DB.settings.alertThreshold || 3;
+  const alertMembers = Object.entries(byMember).filter(([id,c])=>c>=threshold).map(([id,c])=>({member: DB.members.find(m=>m.id===id), count:c})).filter(x=>x.member);
+
+  const today = new Date();
+  const pdpSource = SESSION.role==='admin' ? DB.pdp : DB.pdp.filter(p=>p.memberId===SESSION.memberId);
+  const overduePdp = pdpSource.filter(p=> p.status!=='Concluído' && p.prazo && new Date(p.prazo) < today);
+  const totalPdp = pdpSource.length;
+  const concluidoPdp = pdpSource.filter(p=>p.status==='Concluído').length;
+  const justificadas = DB.absences.filter(a=>a.status==='Aprovada').length;
+  const totalAbs = DB.absences.length || 1;
+  const taxaJustificacao = Math.round((justificadas/totalAbs)*100);
+
+  return { activeMembers, recentAbsences, pendingAbsences, alertMembers, overduePdp, totalPdp, concluidoPdp, taxaJustificacao };
+}
+
+function renderMonthSpotlight(){
+  const now = new Date();
+  const curMonth = now.getMonth();
+  const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  const birthdays = DB.members
+    .filter(m=> m.dataNascimento)
+    .map(m=>{ const d = new Date(m.dataNascimento+'T00:00:00'); return {mem:m, day:d.getDate(), month:d.getMonth()}; })
+    .filter(x=> x.month===curMonth)
+    .sort((a,b)=> a.day-b.day);
+
+  const today = now.toISOString().slice(0,10);
+  const monthStart = `${now.getFullYear()}-${String(curMonth+1).padStart(2,'0')}-01`;
+  const monthEndDate = new Date(now.getFullYear(), curMonth+1, 0);
+  const monthEnd = monthEndDate.toISOString().slice(0,10);
+  const monthEvents = [...DB.events].filter(e=> e.data >= monthStart && e.data <= monthEnd).sort((a,b)=> a.data.localeCompare(b.data));
+
+  if(birthdays.length===0 && monthEvents.length===0) return '';
+
+  const birthdaysHTML = birthdays.length===0
+    ? `<div style="font-size:12px; color:var(--text-dim);">Nenhum aniversariante em ${monthNames[curMonth]}.</div>`
+    : birthdays.map(x=> `<div class="birthday-row"><span class="birthday-date">${String(x.day).padStart(2,'0')}</span><span>🎂 ${esc(x.mem.nome)}</span><span class="subteam-tag" style="margin-left:auto;">${esc(x.mem.subequipe)}</span></div>`).join('');
+
+  const eventsHTML = monthEvents.length===0
+    ? `<div style="font-size:12px; color:var(--text-dim);">Nenhuma atividade agendada para ${monthNames[curMonth]}.</div>`
+    : monthEvents.map(e=> `<div class="birthday-row"><span class="birthday-date">${e.data.slice(8,10)}</span><span>${esc(e.titulo)}${e.data<today?' <span style="color:var(--text-dim); font-size:10.5px;">(realizada)</span>':''}</span></div>`).join('');
+
+  return `
+  <div class="panel-spotlight">
+    <div class="spotlight-head">
+      <div class="spotlight-icon">🎉</div>
+      <div>
+        <div class="spotlight-title">Destaques de ${monthNames[curMonth]}</div>
+        <div class="spotlight-sub">Aniversariantes e ações do mês · visível para toda a equipe</div>
+      </div>
+    </div>
+    <div class="spotlight-grid">
+      <div><div class="spotlight-col-title">Aniversariantes</div>${birthdaysHTML}</div>
+      <div><div class="spotlight-col-title">Ações & atividades do mês</div>${eventsHTML}</div>
+    </div>
+  </div>`;
+}
+
+function viewDashboard(){
+  const m = computeMonitoring();
+  return `
+  <div class="page-title">Painel Geral</div>
+  <div class="page-sub">Visão consolidada da equipe — atualizado em tempo real.</div>
+
+  ${renderMonthSpotlight()}
+
+  <div class="kpi-strip">
+    <div class="kpi" style="--kpi-color:var(--cyan)"><div class="kpi-label">Membros ativos</div><div class="kpi-value">${m.activeMembers.length}</div><div class="kpi-hint">de ${DB.members.length} cadastrados</div></div>
+    <div class="kpi" style="--kpi-color:var(--amber)"><div class="kpi-label">Ausências pendentes</div><div class="kpi-value">${m.pendingAbsences.length}</div><div class="kpi-hint">aguardando avaliação</div></div>
+    <div class="kpi" style="--kpi-color:var(--red)"><div class="kpi-label">Alertas de frequência</div><div class="kpi-value">${m.alertMembers.length}</div><div class="kpi-hint">${DB.settings.alertThreshold||3}+ ausências em 30 dias</div></div>
+    <div class="kpi" style="--kpi-color:var(--green)"><div class="kpi-label">Taxa de justificação</div><div class="kpi-value">${m.taxaJustificacao}%</div><div class="kpi-hint">ausências aprovadas</div></div>
+    <div class="kpi" style="--kpi-color:var(--cyan)"><div class="kpi-label">PDP concluídos</div><div class="kpi-value">${m.concluidoPdp}/${m.totalPdp}</div><div class="kpi-hint">${m.overduePdp.length} meta(s) atrasada(s)</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Cronograma & Agenda da Equipe<small>Próximas atividades e compromissos</small></div>
+      <button class="btn btn-sm" data-view="cronograma">Ver agenda completa</button>
+    </div>
+    ${renderUpcomingEvents()}
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Alertas de Monitoramento<small>Situações que pedem atenção do responsável</small></div></div>
+        ${renderAlerts(m)}
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Ausências recentes<small>Últimos 30 dias</small></div>
+          <button class="btn btn-sm" data-view="ausencias">Ver todas</button>
+        </div>
+        ${renderRecentAbsencesTable(m.recentAbsences.slice(0,6))}
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Atividade do sistema<small>Log de ações recentes</small></div></div>
+        ${DB.log.slice(0,10).map(l=>`<div class="log-item"><div class="log-time">${fmtDateTime(l.em).split(' ')[1]||''} ${fmtDate(l.em)}</div><div><b>${esc(l.autor)}</b> — ${esc(l.texto)}</div></div>`).join('') || emptyRow('Nenhuma atividade registrada ainda.')}
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function renderAlerts(m){
+  const alerts = [];
+  m.alertMembers.forEach(a=> alerts.push({level:'red', text:`${a.member.nome} acumulou ${a.count} ausências nos últimos 30 dias.`}));
+  m.overduePdp.forEach(p=>{ const mem = DB.members.find(x=>x.id===p.memberId); alerts.push({level:'amber', text:`Meta de PDP "${p.area}" de ${mem?mem.nome:'membro removido'} está com prazo vencido.`}); });
+  if(m.pendingAbsences.length>0) alerts.push({level:'cyan', text:`${m.pendingAbsences.length} justificativa(s) de ausência aguardando avaliação.`});
+  if(alerts.length===0) return emptyRow('Nenhum alerta no momento — tudo em dia.');
+  return alerts.map(a=>`<div class="log-item"><span class="badge badge-${a.level}" style="flex-shrink:0;"><span class="badge-dot"></span>alerta</span><div>${esc(a.text)}</div></div>`).join('');
+}
+
+function renderRecentAbsencesTable(list){
+  if(list.length===0) return emptyRow('Sem registros no período.');
+  return `<div class="table-wrap"><table><thead><tr><th>Membro</th><th>Data</th><th>Tipo</th><th>Status</th></tr></thead><tbody>
+  ${list.map(a=>{ const mem = DB.members.find(x=>x.id===a.memberId); return `<tr><td>${esc(mem?mem.nome:'—')}</td><td class="mono">${fmtDate(a.data)}</td><td>${esc(a.tipo)}</td><td>${statusBadge(a.status)}</td></tr>`; }).join('')}
+  </tbody></table></div>`;
+}
+
+function emptyRow(text){ return `<div class="empty-state" style="padding:22px 10px;"><div class="em-icon">–</div>${esc(text)}</div>`; }
+function statusBadge(status){
+  const map = {'Pendente':'amber','Aprovada':'green','Rejeitada':'red','Em andamento':'cyan','Concluído':'green','Atrasado':'red','pendente':'amber','aprovado':'green','rejeitado':'red','inativo':'gray'};
+  const cls = map[status] || 'gray';
+  return `<span class="badge badge-${cls}"><span class="badge-dot"></span>${esc(status)}</span>`;
+}
+
+/* ---------------------- MEMBROS ---------------------- */
+function viewMembros(){
+  const editable = can('gerenciar_usuarios') || SESSION.role==='editor';
+  const cards = DB.members.map(mem=>{
+    const abs30 = DB.absences.filter(a=>a.memberId===mem.id && new Date(a.data) >= new Date(Date.now()-30*86400000)).length;
+    const pdpCount = DB.pdp.filter(p=>p.memberId===mem.id).length;
+    return `
+    <div class="member-card" data-member="${mem.id}">
+      <div class="member-avatar">${initials(mem.nome)}</div>
+      <div class="member-name">${esc(mem.nome)}</div>
+      <div class="member-role">${esc(mem.funcao||'Membro')} · <span class="subteam-tag">${esc(mem.subequipe)}</span> ${mem.perfil?`<span class="subteam-tag">${esc(mem.perfil)}</span>`:''}</div>
+      <div class="member-meta-row"><span>${abs30} ausência(s)/30d</span>${(SESSION.role==='admin'||SESSION.memberId===mem.id) ? `<span>${pdpCount} meta(s) PDP</span>` : '<span></span>'}</div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="panel-head" style="margin-bottom:16px;">
+    <div><div class="page-title" style="margin-bottom:2px;">Membros da Equipe</div><div class="page-sub" style="margin-bottom:0;">${DB.members.length} cadastrados</div></div>
+    ${editable ? `<button class="btn btn-primary" id="newMemberBtn">+ Novo membro</button>` : ''}
+  </div>
+  ${DB.members.length===0 ? emptyRow('Nenhum membro cadastrado ainda.') : `<div class="member-grid">${cards}</div>`}
+  `;
+}
+
+function memberDetailModalHTML(memberId){
+  const mem = DB.members.find(m=>m.id===memberId);
+  if(!mem) return '';
+  const editable = SESSION.role==='admin' || SESSION.role==='editor';
+  const pdpAllowed = SESSION.role==='admin' || SESSION.memberId===memberId;
+  const pdpEditable = SESSION.role==='admin';
+  const sched = DB.schedules.filter(s=>s.memberId===memberId);
+  const abs = DB.absences.filter(a=>a.memberId===memberId).sort((a,b)=> new Date(b.data)-new Date(a.data));
+  const pdps = DB.pdp.filter(p=>p.memberId===memberId);
+  let tab = MODAL.tab || 'perfil';
+  if(tab==='pdp' && !pdpAllowed) tab = 'perfil';
+
+  const tabDefs = ['perfil','horarios','ausencias'];
+  if(pdpAllowed) tabDefs.push('pdp');
+  const tabs = tabDefs.map(t=>`<button class="tab-btn ${tab===t?'active':''}" data-tab="${t}">${({perfil:'Perfil',horarios:'Horários',ausencias:'Ausências',pdp:'PDP'})[t]}</button>`).join('');
+
+  let content = '';
+  if(tab==='perfil'){
+    content = `
+      <div class="field"><label>Nome</label><div>${esc(mem.nome)}</div></div>
+      <div class="form-row">
+        <div class="field"><label>Subequipe</label><div><span class="subteam-tag">${esc(mem.subequipe)}</span></div></div>
+        <div class="field"><label>Função</label><div>${esc(mem.funcao||'Membro')}</div></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>E-mail</label><div>${esc(mem.email||'—')}</div></div>
+        <div class="field"><label>Contato adicional</label><div>${esc(mem.contato||'—')}</div></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Entrada na equipe</label><div class="mono">${fmtDate(mem.dataEntrada)} ${mem.anoEntrada?`(temporada ${mem.anoEntrada})`:''}</div></div>
+        <div class="field"><label>Status</label>${statusBadge(mem.status)}</div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Perfil na equipe</label>${mem.perfil?`<span class="badge badge-cyan"><span class="badge-dot"></span>${esc(mem.perfil)}</span>`:'—'}</div>
+        <div class="field"></div>
+      </div>
+      <div class="eyebrow" style="margin-top:10px;">Dados escolares</div>
+      <div class="form-row3">
+        <div class="field"><label>Nascimento</label><div class="mono">${mem.dataNascimento?fmtDate(mem.dataNascimento):'—'}</div></div>
+        <div class="field"><label>Série</label><div>${esc(mem.serie||'—')}</div></div>
+        <div class="field"><label>Turma</label><div>${esc(mem.turma||'—')}</div></div>
+      </div>
+      <div class="form-row3">
+        <div class="field"><label>Turno</label><div>${esc(mem.turno||'—')}</div></div>
+        <div class="field"><label>Camisa</label><div>${esc(mem.tamanhoCamisa||'—')}</div></div>
+        <div class="field"></div>
+      </div>
+      ${editable ? `<div class="form-actions"><button class="btn btn-sm" id="editMemberBtn">Editar dados</button>${mem.email?`<button class="btn btn-sm" id="resendLinkBtn">✉ Reenviar link de acesso</button>`:''}<button class="btn btn-sm btn-danger" id="removeMemberBtn">Remover membro</button></div>` : ''}
+    `;
+  } else if(tab==='horarios'){
+    content = `
+      ${sched.length===0 ? emptyRow('Nenhum horário cadastrado.') : `<div class="table-wrap"><table><thead><tr><th>Dia</th><th>Início</th><th>Fim</th><th>Local</th>${editable?'<th></th>':''}</tr></thead><tbody>
+      ${sched.map(s=>`<tr><td>${esc(s.dia)}</td><td class="mono">${esc(s.inicio)}</td><td class="mono">${esc(s.fim)}</td><td>${esc(s.local)}</td>${editable?`<td><button class="icon-btn" data-del-sched="${s.id}">✕</button></td>`:''}</tr>`).join('')}
+      </tbody></table></div>`}
+      ${editable ? `<button class="btn btn-sm" style="margin-top:12px;" id="addSchedBtn">+ Adicionar horário</button>` : ''}
+    `;
+  } else if(tab==='ausencias'){
+    content = `
+      ${abs.length===0 ? emptyRow('Nenhuma ausência registrada.') : `<div class="table-wrap"><table><thead><tr><th>Data</th><th>Tipo</th><th>Justificativa</th><th>Status</th>${editable?'<th></th>':''}</tr></thead><tbody>
+      ${abs.map(a=>`<tr><td class="mono">${fmtDate(a.data)}</td><td>${esc(a.tipo)}</td><td style="max-width:180px;">${esc(a.justificativa||'—')}</td><td>${statusBadge(a.status)}</td>${editable?`<td>
+        ${a.status==='Pendente' ? `<button class="icon-btn" data-approve-abs="${a.id}" title="Aprovar">✓</button><button class="icon-btn" data-reject-abs="${a.id}" title="Rejeitar">✕</button>` : ''}
+      </td>`:''}</tr>`).join('')}
+      </tbody></table></div>`}
+      ${(SESSION.role==='admin'||SESSION.role==='editor'||SESSION.role==='viewer') ? `<button class="btn btn-sm" style="margin-top:12px;" id="addAbsBtn">+ Registrar ausência/justificativa</button>` : ''}
+    `;
+  } else if(tab==='pdp' && pdpAllowed){
+    content = `
+      ${pdps.length===0 ? emptyRow('Nenhuma meta de desenvolvimento cadastrada.') : pdps.map(p=>`
+        <div class="panel" style="padding:14px; margin-bottom:10px;">
+          <div class="panel-head" style="margin-bottom:8px;">
+            <div class="panel-title" style="font-size:13px;">${esc(p.area)}<small>Nível atual ${p.nivelAtual} → meta ${p.nivelMeta} · prazo ${fmtDate(p.prazo)}</small></div>
+            ${statusBadge(p.status)}
+          </div>
+          <div class="progress-track" style="margin-bottom:8px;"><div class="progress-fill" style="width:${p.progresso}%;"></div></div>
+          <div style="font-size:12px; color:var(--text-muted);">${esc(p.acoes||'')}</div>
+          ${p.anexo ? `<div style="margin-top:10px;"><a href="${p.anexo.dados}" download="${esc(p.anexo.nome)}" class="btn btn-sm" style="text-decoration:none; display:inline-block;">📎 ${esc(p.anexo.nome)}</a></div>` : ''}
+          ${pdpEditable ? `<div class="form-actions" style="margin-top:10px;"><button class="btn btn-sm" data-edit-pdp="${p.id}">Editar</button><button class="btn btn-sm btn-danger" data-del-pdp="${p.id}">Remover</button></div>` : ''}
+        </div>
+      `).join('')}
+      ${pdpEditable ? `<button class="btn btn-sm" id="addPdpBtn">+ Nova meta de desenvolvimento</button>` : `<div class="hint-box">Este plano é visível apenas para você e para o administrador.</div>`}
+    `;
+  }
+
+  return `
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <button class="modal-close" id="modalCloseBtn">×</button>
+      <div class="modal-title">${esc(mem.nome)} <span style="font-size:12px; color:var(--text-muted); font-weight:400;">· ${esc(mem.subequipe)}</span></div>
+      <div class="tab-strip">${tabs}</div>
+      ${content}
+    </div>
+  </div>`;
+}
+
+/* form modals (member new/edit, schedule add, absence add, pdp add/edit) */
+function formModalHTML(){
+  const p = MODAL.payload || {};
+  if(MODAL.type==='memberForm'){
+    const m = p.member || {};
+    return wrapFormModal(m.id?'Editar membro':'Novo membro', `
+      <form id="memberFormEl">
+        <div class="field"><label>Nome completo</label><input name="nome" required value="${esc(m.nome||'')}"></div>
+        <div class="form-row">
+          <div class="field"><label>Subequipe</label><select name="subequipe">${(DB.settings.subteams||SUBTEAMS).map(s=>`<option ${m.subequipe===s?'selected':''}>${s}</option>`).join('')}</select></div>
+          <div class="field"><label>Função</label><input name="funcao" value="${esc(m.funcao||'Membro')}" placeholder="Membro / Líder de subequipe / Capitão"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>E-mail (para receber o link de acesso ao programa)</label><input type="email" name="email" value="${esc(m.email||'')}" placeholder="email@exemplo.com"></div>
+          <div class="field"><label>Contato adicional (telefone)</label><input name="contato" value="${esc(m.contato||'')}"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Data de entrada na equipe</label><input type="date" name="dataEntrada" value="${m.dataEntrada ? m.dataEntrada.slice(0,10) : ''}"></div>
+          <div class="field"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Status</label><select name="status"><option value="ativo" ${m.status==='ativo'?'selected':''}>Ativo</option><option value="inativo" ${m.status==='inativo'?'selected':''}>Inativo</option></select></div>
+          <div class="field"><label>Perfil na equipe</label><select name="perfil">
+            <option value="Novato" ${m.perfil==='Novato'?'selected':''}>Novato</option>
+            <option value="Veterano" ${m.perfil==='Veterano'?'selected':''}>Veterano</option>
+            <option value="Sênior" ${m.perfil==='Sênior'?'selected':''}>Sênior</option>
+          </select></div>
+        </div>
+        <div class="eyebrow" style="margin-top:6px;">Dados escolares</div>
+        <div class="form-row3">
+          <div class="field"><label>Data de nascimento</label><input type="date" name="dataNascimento" value="${m.dataNascimento?m.dataNascimento.slice(0,10):''}"></div>
+          <div class="field"><label>Série / ano escolar</label><input name="serie" value="${esc(m.serie||'')}" placeholder="Ex: 9º ano, 2ª série EM"></div>
+          <div class="field"><label>Turma</label><input name="turma" value="${esc(m.turma||'')}" placeholder="Ex: A, B, 301"></div>
+        </div>
+        <div class="form-row3">
+          <div class="field"><label>Turno que estuda</label><select name="turno">
+            <option value="Manhã" ${m.turno==='Manhã'?'selected':''}>Manhã</option>
+            <option value="Tarde" ${m.turno==='Tarde'?'selected':''}>Tarde</option>
+            <option value="Noite" ${m.turno==='Noite'?'selected':''}>Noite</option>
+            <option value="Integral" ${m.turno==='Integral'?'selected':''}>Integral</option>
+          </select></div>
+          <div class="field"><label>Tamanho de camisa</label><select name="tamanhoCamisa">
+            ${['PP','P','M','G','GG','XG'].map(t=>`<option ${m.tamanhoCamisa===t?'selected':''}>${t}</option>`).join('')}
+          </select></div>
+          <div class="field"><label>Ano de entrada na equipe</label><input type="number" name="anoEntrada" min="2000" max="2100" value="${m.anoEntrada||new Date().getFullYear()}"></div>
+        </div>
+        ${!m.id ? `<div class="field"><label><input type="checkbox" name="enviarLink" checked> Enviar por e-mail o link de acesso ao programa após salvar</label></div>` : ''}
+        <div class="form-actions"><button class="btn btn-primary" type="submit">Salvar</button><button class="btn btn-ghost" type="button" id="cancelFormBtn">Cancelar</button></div>
+      </form>`);
+  }
+  if(MODAL.type==='schedForm'){
+    const needsMemberSelect = !p.memberId;
+    return wrapFormModal('Novo horário', `
+      <form id="schedFormEl">
+        ${needsMemberSelect ? `<div class="field"><label>Membro</label><select name="memberId" required>${DB.members.map(m=>`<option value="${m.id}">${esc(m.nome)}</option>`).join('')}</select></div>` : ''}
+        <div class="form-row">
+          <div class="field"><label>Dia da semana</label><select name="dia">${WEEKDAYS.map(d=>`<option>${d}</option>`).join('')}</select></div>
+          <div class="field"><label>Local</label><input name="local" placeholder="Oficina / Laboratório / Remoto" required></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Início</label><input type="time" name="inicio" required value="14:00"></div>
+          <div class="field"><label>Fim</label><input type="time" name="fim" required value="18:00"></div>
+        </div>
+        <div class="form-actions"><button class="btn btn-primary" type="submit">Salvar</button><button class="btn btn-ghost" type="button" id="cancelFormBtn">Cancelar</button></div>
+      </form>`);
+  }
+  if(MODAL.type==='absForm'){
+    const needsMemberSelect = !p.memberId;
+    return wrapFormModal('Registrar ausência / justificativa', `
+      <form id="absFormEl">
+        ${needsMemberSelect ? `<div class="field"><label>Membro</label><select name="memberId" required>${DB.members.map(m=>`<option value="${m.id}">${esc(m.nome)}</option>`).join('')}</select></div>` : ''}
+        <div class="form-row">
+          <div class="field"><label>Data</label><input type="date" name="data" required value="${new Date().toISOString().slice(0,10)}"></div>
+          <div class="field"><label>Tipo</label><select name="tipo">${(DB.settings.absenceTypes||ABSENCE_TYPES).map(t=>`<option>${t}</option>`).join('')}</select></div>
+        </div>
+        <div class="field"><label>Justificativa</label><textarea name="justificativa" placeholder="Descreva o motivo da ausência..."></textarea></div>
+        <div class="form-actions"><button class="btn btn-primary" type="submit">Registrar</button><button class="btn btn-ghost" type="button" id="cancelFormBtn">Cancelar</button></div>
+      </form>`);
+  }
+  if(MODAL.type==='pdpForm'){
+    const pd = p.pdp || {};
+    return wrapFormModal(pd.id?'Editar meta de desenvolvimento':'Nova meta de desenvolvimento', `
+      <form id="pdpFormEl">
+        <div class="field"><label>Área / Habilidade</label><input name="area" required value="${esc(pd.area||'')}" placeholder="Ex: Programação em Java, Soldagem, Liderança..."></div>
+        <div class="form-row3">
+          <div class="field"><label>Nível atual (1–5)</label><input type="number" min="1" max="5" name="nivelAtual" value="${pd.nivelAtual||1}"></div>
+          <div class="field"><label>Nível meta (1–5)</label><input type="number" min="1" max="5" name="nivelMeta" value="${pd.nivelMeta||3}"></div>
+          <div class="field"><label>Progresso (%)</label><input type="number" min="0" max="100" name="progresso" value="${pd.progresso||0}"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Prazo</label><input type="date" name="prazo" value="${pd.prazo?pd.prazo.slice(0,10):''}"></div>
+          <div class="field"><label>Status</label><select name="status"><option ${pd.status==='Em andamento'?'selected':''}>Em andamento</option><option ${pd.status==='Concluído'?'selected':''}>Concluído</option><option ${pd.status==='Atrasado'?'selected':''}>Atrasado</option></select></div>
+        </div>
+        <div class="field"><label>Plano de ação / observações</label><textarea name="acoes">${esc(pd.acoes||'')}</textarea></div>
+        <div class="field"><label>Arquivo anexo (opcional — PDF, imagem, doc; até 2MB)</label>
+          <input type="file" name="arquivo">
+          ${pd.anexo ? `<div style="font-size:11.5px; color:var(--text-muted); margin-top:6px;">Anexo atual: <a href="${pd.anexo.dados}" download="${esc(pd.anexo.nome)}">${esc(pd.anexo.nome)}</a>
+            <label style="margin-left:10px;"><input type="checkbox" name="removerAnexo" value="1"> remover anexo</label></div>` : ''}
+        </div>
+        <div class="form-actions"><button class="btn btn-primary" type="submit">Salvar</button><button class="btn btn-ghost" type="button" id="cancelFormBtn">Cancelar</button></div>
+      </form>`);
+  }
+  if(MODAL.type==='eventForm'){
+    const ev = p.event || {};
+    return wrapFormModal(ev.id?'Editar atividade':'Nova atividade', `
+      <form id="eventFormEl">
+        <div class="field"><label>Título da atividade</label><input name="titulo" required value="${esc(ev.titulo||'')}" placeholder="Ex: Reunião geral, Competição regional, Entrega do robô"></div>
+        <div class="form-row">
+          <div class="field"><label>Data</label><input type="date" name="data" required value="${ev.data?ev.data.slice(0,10):''}"></div>
+          <div class="field"><label>Horário (opcional)</label><input type="time" name="horario" value="${esc(ev.horario||'')}"></div>
+        </div>
+        <div class="field"><label>Local</label><input name="local" value="${esc(ev.local||'')}" placeholder="Oficina / Escola / Ginásio da competição"></div>
+        <div class="field"><label>Descrição</label><textarea name="descricao">${esc(ev.descricao||'')}</textarea></div>
+        <div class="form-actions"><button class="btn btn-primary" type="submit">Salvar</button><button class="btn btn-ghost" type="button" id="cancelFormBtn">Cancelar</button></div>
+      </form>`);
+  }
+  return '';
+}
+function wrapFormModal(title, body){
+  return `<div class="modal-overlay" id="modalOverlay"><div class="modal" style="max-width:480px;">
+    <button class="modal-close" id="modalCloseBtn">×</button>
+    <div class="modal-title">${esc(title)}</div>
+    ${body}
+  </div></div>`;
+}
+
+function renderModal(){
+  if(MODAL.type==='member') return memberDetailModalHTML(MODAL.memberId);
+  return formModalHTML();
+}
+
+/* ---------------------- HORÁRIOS (visão geral) ---------------------- */
+function viewHorarios(){
+  const editable = SESSION.role==='admin' || SESSION.role==='editor';
+  const rows = WEEKDAYS.map(dia=>{
+    const entries = DB.schedules.filter(s=>s.dia===dia);
+    if(entries.length===0) return '';
+    return `<tr><td colspan="4" style="background:var(--bg-raised); font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--cyan);">${dia}</td></tr>` +
+      entries.map(s=>{ const mem = DB.members.find(m=>m.id===s.memberId); return `<tr><td>${esc(mem?mem.nome:'—')}</td><td class="mono">${esc(s.inicio)} – ${esc(s.fim)}</td><td>${esc(s.local)}</td>${editable?`<td><button class="icon-btn" data-del-sched-global="${s.id}">✕</button></td>`:'<td></td>'}</tr>`;
+      }).join('');
+  }).join('');
+  return `
+  <div class="page-title">Horários de Trabalho</div>
+  <div class="page-sub">Grade semanal consolidada de presença na oficina/laboratório.</div>
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Grade semanal<small>Organizada por dia</small></div>
+      ${editable? `<button class="btn btn-sm btn-primary" id="newScheduleGlobalBtn">+ Novo horário</button>`:''}
+    </div>
+    ${DB.schedules.length===0 ? emptyRow('Nenhum horário cadastrado ainda.') : `<div class="table-wrap"><table><thead><tr><th>Membro</th><th>Horário</th><th>Local</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`}
+  </div>`;
+}
+
+/* ---------------------- AUSÊNCIAS (visão geral) ---------------------- */
+function viewAusencias(){
+  const editable = SESSION.role==='admin' || SESSION.role==='editor';
+  const list = [...DB.absences].sort((a,b)=> new Date(b.data)-new Date(a.data));
+  return `
+  <div class="page-title">Faltas & Ausências</div>
+  <div class="page-sub">Registro e avaliação de justificativas de toda a equipe.</div>
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Todos os registros<small>${list.length} no total</small></div>
+      <button class="btn btn-sm btn-primary" id="newAbsGlobalBtn">+ Registrar ausência</button>
+    </div>
+    ${list.length===0 ? emptyRow('Nenhuma ausência registrada ainda.') : `<div class="table-wrap"><table><thead><tr><th>Membro</th><th>Data</th><th>Tipo</th><th>Justificativa</th><th>Status</th>${editable?'<th></th>':''}</tr></thead><tbody>
+    ${list.map(a=>{ const mem = DB.members.find(m=>m.id===a.memberId); return `<tr><td>${esc(mem?mem.nome:'—')}</td><td class="mono">${fmtDate(a.data)}</td><td>${esc(a.tipo)}</td><td style="max-width:220px;">${esc(a.justificativa||'—')}</td><td>${statusBadge(a.status)}</td>${editable?`<td>${a.status==='Pendente'?`<button class="icon-btn" data-approve-abs-g="${a.id}">✓</button><button class="icon-btn" data-reject-abs-g="${a.id}">✕</button>`:''}</td>`:''}</tr>`; }).join('')}
+    </tbody></table></div>`}
+  </div>`;
+}
+
+/* ---------------------- PDP (visão geral) ---------------------- */
+function viewPdp(){
+  const isAdmin = SESSION.role==='admin';
+  const source = isAdmin ? DB.pdp : DB.pdp.filter(p=>p.memberId===SESSION.memberId);
+  const list = source.map(p=>({...p, member: DB.members.find(m=>m.id===p.memberId)})).filter(p=>p.member);
+  return `
+  <div class="page-title">${isAdmin ? 'Plano de Desenvolvimento Pessoal' : 'Meu Plano de Desenvolvimento'}</div>
+  <div class="page-sub">${isAdmin ? 'Metas de evolução técnica e comportamental de cada membro. Visível apenas para você e para cada membro sobre si mesmo.' : 'Suas metas de evolução técnica e comportamental, definidas pelo administrador.'}</div>
+  ${list.length===0 ? `<div class="panel">${emptyRow(isAdmin ? 'Nenhuma meta cadastrada. Acesse a ficha de um membro para adicionar.' : 'Nenhuma meta cadastrada para você ainda.')}</div>` : `
+  <div class="member-grid">
+  ${list.map(p=>`
+    <div class="panel" style="margin-bottom:0;">
+      <div class="panel-head" style="margin-bottom:8px;">
+        <div class="panel-title" style="font-size:13px;">${esc(p.area)}<small>${esc(p.member.nome)}</small></div>
+        ${statusBadge(p.status)}
+      </div>
+      <div class="progress-track" style="margin-bottom:6px;"><div class="progress-fill" style="width:${p.progresso}%;"></div></div>
+      <div style="font-size:11px; color:var(--text-dim); font-family:var(--font-mono);">Nível ${p.nivelAtual}→${p.nivelMeta} · prazo ${fmtDate(p.prazo)}</div>
+      ${p.anexo ? `<div style="margin-top:8px;"><a href="${p.anexo.dados}" download="${esc(p.anexo.nome)}" class="btn btn-sm" style="text-decoration:none; display:inline-block;">📎 ${esc(p.anexo.nome)}</a></div>` : ''}
+    </div>`).join('')}
+  </div>`}
+  `;
+}
+
+/* ---------------------- APARÊNCIA (todos os usuários) ---------------------- */
+function viewAparencia(){
+  const t = THEME || {};
+  return `
+  <div class="page-title">Aparência</div>
+  <div class="page-sub">Personalize as cores do programa neste navegador. Qualquer usuário pode ajustar.</div>
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Cores do sistema<small>A prévia é aplicada imediatamente</small></div></div>
+    <form id="themeForm">
+      <div class="form-row3">
+        <div class="field"><label>Cor de destaque</label><input type="color" name="accent" value="${t.accent||'#E5382A'}" style="height:42px; padding:4px;"></div>
+        <div class="field"><label>Cor de fundo</label><input type="color" name="bg" value="${t.bg||'#0D0A0A'}" style="height:42px; padding:4px;"></div>
+        <div class="field"><label>Cor do texto</label><input type="color" name="text" value="${t.text||'#F2E8E6'}" style="height:42px; padding:4px;"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Salvar minhas cores</button>
+        <button class="btn btn-ghost" type="button" id="resetThemeBtn">Restaurar padrão HYDRA</button>
+      </div>
+    </form>
+    <div class="hint-box" style="margin-top:16px;">A personalização fica salva neste navegador/conta e não altera a aparência para os demais usuários.</div>
+  </div>
+  `;
+}
+
+/* ---------------------- CRONOGRAMA & AGENDA ---------------------- */
+function renderUpcomingEvents(){
+  const today = new Date().toISOString().slice(0,10);
+  const upcoming = [...DB.events].filter(e=>e.data >= today).sort((a,b)=> a.data.localeCompare(b.data)).slice(0,5);
+  if(upcoming.length===0) return emptyRow('Nenhuma atividade futura cadastrada.');
+  return `<div class="table-wrap"><table><thead><tr><th>Data</th><th>Atividade</th><th>Local</th></tr></thead><tbody>
+  ${upcoming.map(e=>`<tr><td class="mono">${fmtDate(e.data)}${e.horario?` · ${esc(e.horario)}`:''}</td><td>${esc(e.titulo)}</td><td>${esc(e.local||'—')}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+function viewCronograma(){
+  const isAdmin = SESSION.role==='admin';
+  const list = [...DB.events].sort((a,b)=> a.data.localeCompare(b.data));
+  return `
+  <div class="page-title">Cronograma & Agenda da Equipe</div>
+  <div class="page-sub">Datas, competições, reuniões e prazos importantes. ${isAdmin ? '' : 'Somente o administrador pode inserir ou alterar atividades.'}</div>
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Todas as atividades<small>${list.length} no total</small></div>
+      ${isAdmin ? `<button class="btn btn-sm btn-primary" id="newEventBtn">+ Nova atividade</button>` : ''}
+    </div>
+    ${list.length===0 ? emptyRow('Nenhuma atividade cadastrada ainda.') : `<div class="table-wrap"><table><thead><tr><th>Data</th><th>Atividade</th><th>Local</th><th>Descrição</th>${isAdmin?'<th></th>':''}</tr></thead><tbody>
+    ${list.map(e=>`<tr><td class="mono">${fmtDate(e.data)}${e.horario?` · ${esc(e.horario)}`:''}</td><td>${esc(e.titulo)}</td><td>${esc(e.local||'—')}</td><td style="max-width:220px;">${esc(e.descricao||'—')}</td>${isAdmin?`<td style="white-space:nowrap;"><button class="icon-btn" data-edit-event="${e.id}">✎</button><button class="icon-btn" data-del-event="${e.id}">✕</button></td>`:''}</tr>`).join('')}
+    </tbody></table></div>`}
+  </div>`;
+}
+
+/* ---------------------- USUÁRIOS (admin) ---------------------- */
+function viewUsuarios(){
+  const pending = DB.users.filter(u=>u.status==='pendente');
+  const others = DB.users.filter(u=>u.status!=='pendente');
+  const memberOptions = (selectedId)=> `<option value="">— sem membro vinculado —</option>` + DB.members.map(m=>`<option value="${m.id}" ${selectedId===m.id?'selected':''}>${esc(m.nome)}</option>`).join('');
+  return `
+  <div class="page-title">Usuários & Acessos</div>
+  <div class="page-sub">Aprovação de cadastros e controle de permissões do sistema.</div>
+  <div class="hint-box" style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+    <span>Compartilhe o link de cadastro para que os próprios membros preencham seus dados online. Pedidos de nova senha também aparecem aqui, na lista de usuários.</span>
+    <button class="btn btn-sm" id="copyRegisterLinkBtnAdmin">🔗 Copiar link de cadastro</button>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Cadastros pendentes<small>Requerem aprovação do administrador</small></div></div>
+    ${pending.length===0 ? emptyRow('Nenhum cadastro pendente.') : `<div class="table-wrap"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Dados enviados</th><th>Perfil solicitado</th><th>Membro vinculado</th><th>Data</th><th></th></tr></thead><tbody>
+    ${pending.map(u=>`<tr><td>${esc(u.nome)}</td><td class="mono">${esc(u.email)}</td>
+      <td style="font-size:11.5px; color:var(--text-muted);">${u.dadosMembro ? `${esc(u.dadosMembro.subequipe||'—')}${u.dadosMembro.turma?' · turma '+esc(u.dadosMembro.turma):''}${u.dadosMembro.turno?' · '+esc(u.dadosMembro.turno):''}` : '<span style="color:var(--text-dim);">sem dados de membro</span>'}</td>
+      <td>
+        <select data-role-select="${u.id}" style="width:auto; display:inline-block; padding:4px 6px; font-size:12px; background:var(--bg-input); border:1px solid var(--line-bright); color:var(--text); border-radius:4px;">
+          <option value="viewer" ${u.role==='viewer'?'selected':''}>Visualização</option>
+          <option value="editor" ${u.role==='editor'?'selected':''}>Edição</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </td>
+      <td><select data-member-select="${u.id}" style="width:auto; display:inline-block; padding:4px 6px; font-size:12px; background:var(--bg-input); border:1px solid var(--line-bright); color:var(--text); border-radius:4px;">${memberOptions(u.memberId)}</select></td>
+      <td class="mono">${fmtDate(u.criadoEm)}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm" data-approve-user="${u.id}">Aprovar</button>
+        <button class="btn btn-sm btn-danger" data-reject-user="${u.id}">Recusar</button>
+      </td></tr>`).join('')}
+    </tbody></table></div>`}
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Usuários do sistema<small>${others.length} conta(s)</small></div></div>
+    ${others.length===0 ? emptyRow('Nenhum usuário aprovado ainda.') : `<div class="table-wrap"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Membro vinculado</th><th>Status</th><th></th></tr></thead><tbody>
+    ${others.map(u=>`<tr><td>${esc(u.nome)}${u.resetRequested?`<br><span class="badge badge-amber"><span class="badge-dot"></span>pediu nova senha</span>`:''}</td><td class="mono">${esc(u.email)}</td><td><span class="role-pill role-${u.role}">${u.role}</span></td>
+      <td><select data-member-select="${u.id}" style="width:auto; display:inline-block; padding:4px 6px; font-size:12px; background:var(--bg-input); border:1px solid var(--line-bright); color:var(--text); border-radius:4px;">${memberOptions(u.memberId)}</select></td>
+      <td>${statusBadge(u.status)}</td>
+      <td style="white-space:nowrap;">
+        ${u.resetRequested ? `<button class="btn btn-sm" data-reset-password="${u.id}">🔑 Gerar nova senha</button>` : ''}
+        ${u.id!==SESSION.id ? (u.status==='aprovado' ? `<button class="btn btn-sm btn-danger" data-deactivate-user="${u.id}">Desativar</button>` : `<button class="btn btn-sm" data-approve-user="${u.id}">Reativar</button>`) : `<span class="badge badge-cyan">você</span>`}
+      </td></tr>`).join('')}
+    </tbody></table></div>`}
+  </div>
+  `;
+}
+function roleLabel(r){ return {admin:'Administrador', editor:'Edição', viewer:'Visualização'}[r] || r; }
+
+/* ---------------------- CONFIGURAÇÕES (admin) ---------------------- */
+function viewConfig(){
+  const m = computeMonitoring();
+  return `
+  <div class="page-title">Configurações</div>
+  <div class="page-sub">Preferências do sistema, e-mail do administrador e exportação de dados.</div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Dados gerais</div></div>
+    <form id="settingsForm">
+      <div class="form-row">
+        <div class="field"><label>Nome da equipe</label><input name="teamName" value="${esc(DB.settings.teamName||'')}"></div>
+        <div class="field"><label>E-mail do administrador (destino dos relatórios)</label><input type="email" name="adminEmail" value="${esc(DB.settings.adminEmail||'')}" placeholder="admin@equipe.com"></div>
+      </div>
+      <button class="btn btn-primary" type="submit">Salvar configurações</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Personalização do sistema<small>Itens usados nos formulários e nos alertas</small></div></div>
+
+    <div class="field"><label>Subequipes disponíveis</label>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+        ${(DB.settings.subteams||[]).map(s=>`<span class="badge badge-gray">${esc(s)} <button class="icon-btn" style="padding:0 0 0 4px;" data-del-subteam="${esc(s)}">✕</button></span>`).join('') || '<span style="color:var(--text-dim); font-size:12px;">Nenhuma cadastrada.</span>'}
+      </div>
+      <form id="addSubteamForm" style="display:flex; gap:8px;">
+        <input name="novaSubequipe" placeholder="Nova subequipe..." style="flex:1; background:var(--bg-input); border:1px solid var(--line-bright); color:var(--text); padding:8px 10px; border-radius:5px;">
+        <button class="btn btn-sm" type="submit">Adicionar</button>
+      </form>
+    </div>
+
+    <div class="field" style="margin-top:18px;"><label>Tipos de ausência</label>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+        ${(DB.settings.absenceTypes||[]).map(s=>`<span class="badge badge-gray">${esc(s)} <button class="icon-btn" style="padding:0 0 0 4px;" data-del-abstype="${esc(s)}">✕</button></span>`).join('') || '<span style="color:var(--text-dim); font-size:12px;">Nenhum cadastrado.</span>'}
+      </div>
+      <form id="addAbsTypeForm" style="display:flex; gap:8px;">
+        <input name="novoTipoAusencia" placeholder="Novo tipo de ausência..." style="flex:1; background:var(--bg-input); border:1px solid var(--line-bright); color:var(--text); padding:8px 10px; border-radius:5px;">
+        <button class="btn btn-sm" type="submit">Adicionar</button>
+      </form>
+    </div>
+
+    <div class="field" style="margin-top:18px; max-width:280px;"><label>Nº de ausências em 30 dias para gerar alerta</label>
+      <form id="alertThresholdForm" style="display:flex; gap:8px;">
+        <input type="number" min="1" name="alertThreshold" value="${DB.settings.alertThreshold||3}" style="flex:1;">
+        <button class="btn btn-sm" type="submit">Salvar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Envio de relatório<small>Resumo de monitoramento da equipe</small></div></div>
+    <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">
+      Este sistema roda inteiramente no navegador, sem servidor próprio — por isso não há envio automático de e-mails em segundo plano.
+      O botão abaixo monta um e-mail de resumo e abre o seu aplicativo de e-mail padrão para envio manual ao endereço configurado acima.
+      Também é possível baixar os dados para backup ou anexo.
+    </p>
+    <div class="form-actions">
+      <button class="btn btn-primary" id="mailReportBtn">✉ Preparar e-mail de resumo</button>
+      <button class="btn" id="downloadJsonBtn">⬇ Baixar dados (JSON)</button>
+      <button class="btn" id="downloadTxtBtn">⬇ Baixar relatório (TXT)</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Versão instalável<small>Use o HYDRA Sustain fora do Claude, com ou sem internet</small></div></div>
+    <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">
+      Baixe uma cópia completa do sistema como um único arquivo .html. Guarde-o em qualquer pasta do computador
+      e abra-o com dois cliques em qualquer navegador — não precisa de internet nem de instalação. Os dados ficam
+      salvos localmente no próprio navegador de cada computador onde o arquivo for aberto.
+    </p>
+    <button class="btn btn-primary" id="downloadAppBtnCfg">⬇ Baixar HYDRA Sustain (.html)</button>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Sincronização entre computadores<small>Para que instalações em máquinas diferentes vejam os mesmos dados</small></div></div>
+    <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">
+      Um arquivo instalado em vários computadores, por si só, não compartilha dados entre eles — cada instalação fica isolada.
+      Para que as informações inseridas em uma máquina possam ser conferidas online por quem instalou o programa em outra,
+      conecte esta instalação a um "cofre" gratuito do serviço <a href="https://jsonbin.io" target="_blank" rel="noopener">JSONBin.io</a>:
+      crie uma conta grátis lá, gere um Bin (documento) e uma X-Master-Key, e informe os dois campos abaixo. Todas as instalações
+      que usarem o mesmo Bin ID e a mesma chave passam a enxergar os mesmos dados.
+    </p>
+    <form id="syncForm">
+      <div class="field"><label><input type="checkbox" name="syncEnabled" ${DB.settings.syncEnabled?'checked':''}> Ativar sincronização online</label></div>
+      <div class="form-row">
+        <div class="field"><label>Bin ID (JSONBin.io)</label><input name="syncBinId" value="${esc(DB.settings.syncBinId||'')}" placeholder="Ex: 65fa1c2e...">
+        </div>
+        <div class="field"><label>X-Master-Key (chave de acesso)</label><input name="syncApiKey" value="${esc(DB.settings.syncApiKey||'')}" placeholder="Chave gerada pelo JSONBin.io"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" type="submit">Salvar configuração de sincronização</button>
+    </form>
+    <div class="form-actions" style="margin-top:14px;">
+      <button class="btn btn-sm" id="syncPullBtn">🔽 Buscar dados da nuvem</button>
+      <button class="btn btn-sm" id="syncPushBtn">🔼 Enviar meus dados para a nuvem</button>
+    </div>
+    <div class="hint-box" style="margin-top:12px;">
+      ${syncConfigured() ? `Sincronização ativa. Última sincronização: ${DB.settings.lastSync ? fmtDateTime(DB.settings.lastSync) : 'ainda não sincronizado'}.${SYNC_STATUS==='erro'?' — última tentativa falhou (verifique internet ou os dados do Bin).':''}` : 'Sincronização ainda não configurada — cada instalação está funcionando de forma independente.'}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Código-fonte do sistema<small>Acesso avançado — apenas administrador</small></div></div>
+    <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">
+      Abaixo está o código completo (HTML/CSS/JavaScript) que roda este programa. Você pode copiá-lo, editá-lo diretamente
+      no campo abaixo e baixar sua própria versão personalizada. Como o HYDRA Sustain é um arquivo único sem servidor,
+      alterações feitas aqui <b>não mudam o app em execução agora</b> — elas só valem no novo arquivo baixado, que substitui o antigo.
+    </p>
+    <div class="field">
+      <textarea id="sourceCodeBox" spellcheck="false" style="min-height:260px; font-family:var(--font-mono); font-size:11.5px; white-space:pre; overflow:auto;">${esc(PRISTINE_HTML)}</textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" id="downloadEditedSourceBtn">⬇ Baixar como novo .html</button>
+      <button class="btn" id="copySourceBtn">📋 Copiar código</button>
+      <button class="btn btn-ghost" id="resetSourceBtn">↺ Restaurar código original</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">Minha conta</div></div>
+    <form id="pwForm">
+      <div class="form-row">
+        ${pwField('Nova senha', 'senha', 'pwFormSenhaInput', 'minlength="4" placeholder="Deixe em branco para manter"')}
+        ${pwField('Confirmar senha', 'senha2', 'pwFormSenha2Input', 'minlength="4"')}
+      </div>
+      <button class="btn btn-sm" type="submit">Atualizar senha</button>
+    </form>
+  </div>
+  `;
+}
+
+/* ---------------------- EVENTS: APP ---------------------- */
+function attachAppEvents(){
+  attachPasswordToggles();
+  document.querySelectorAll('[data-view]').forEach(el=>{
+    el.onclick = ()=>{ VIEW = el.dataset.view; MODAL=null; SIDEBAR_OPEN=false; render(); };
+  });
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  if(hamburgerBtn) hamburgerBtn.onclick = ()=>{ SIDEBAR_OPEN = !SIDEBAR_OPEN; render(); };
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  if(sidebarBackdrop) sidebarBackdrop.onclick = ()=>{ SIDEBAR_OPEN = false; render(); };
+  const logoutBtn = document.getElementById('logoutBtn');
+  if(logoutBtn) logoutBtn.onclick = async ()=>{ await addLog(SESSION.nome,'Logout.'); SESSION=null; render(); };
+  const installBtnTop = document.getElementById('installAppBtnTop');
+  if(installBtnTop) installBtnTop.onclick = ()=> installApp();
+
+  // membros grid
+  document.querySelectorAll('[data-member]').forEach(el=>{
+    el.onclick = ()=>{ MODAL = {type:'member', memberId: el.dataset.member, tab:'perfil'}; render(); };
+  });
+  const newMemberBtn = document.getElementById('newMemberBtn');
+  if(newMemberBtn) newMemberBtn.onclick = ()=>{ MODAL={type:'memberForm', payload:{}}; render(); };
+
+  // horarios global
+  const newSchedGlobal = document.getElementById('newScheduleGlobalBtn');
+  if(newSchedGlobal) newSchedGlobal.onclick = ()=>{
+    if(DB.members.length===0){ toast('Cadastre um membro primeiro.'); return; }
+    MODAL={type:'schedForm', payload:{global:true}}; render();
+  };
+  document.querySelectorAll('[data-del-sched-global]').forEach(el=>{
+    el.onclick = async ()=>{ DB.schedules = DB.schedules.filter(s=>s.id!==el.dataset.delSchedGlobal); await saveSchedules(); await addLog(SESSION.nome,'Removeu um horário.'); render(); };
+  });
+
+  // ausencias global
+  const newAbsGlobal = document.getElementById('newAbsGlobalBtn');
+  if(newAbsGlobal) newAbsGlobal.onclick = ()=>{
+    if(DB.members.length===0){ toast('Cadastre um membro primeiro.'); return; }
+    MODAL={type:'absForm', payload:{global:true}}; render();
+  };
+  document.querySelectorAll('[data-approve-abs-g]').forEach(el=>{
+    el.onclick = async ()=>{ await setAbsStatus(el.dataset.approveAbsG, 'Aprovada'); render(); };
+  });
+  document.querySelectorAll('[data-reject-abs-g]').forEach(el=>{
+    el.onclick = async ()=>{ await setAbsStatus(el.dataset.rejectAbsG, 'Rejeitada'); render(); };
+  });
+
+  // usuarios
+  const copyRegBtnAdmin = document.getElementById('copyRegisterLinkBtnAdmin');
+  if(copyRegBtnAdmin) copyRegBtnAdmin.onclick = ()=> copyRegisterLink();
+  document.querySelectorAll('[data-approve-user]').forEach(el=>{
+    el.onclick = async ()=>{
+      const id = el.dataset.approveUser;
+      const sel = document.querySelector(`[data-role-select="${id}"]`);
+      const role = sel ? sel.value : undefined;
+      const memberSel = document.querySelector(`[data-member-select="${id}"]`);
+      const u = DB.users.find(x=>x.id===id);
+      if(!u) return;
+      u.status='aprovado'; if(role) u.role = role;
+      let saveMembersNeeded = false;
+      if(memberSel && memberSel.value){
+        u.memberId = memberSel.value;
+      } else if(!u.memberId && u.dadosMembro){
+        const d = u.dadosMembro;
+        const novoMembro = { id:uid(), nome:u.nome, subequipe:d.subequipe, funcao:'Membro', contato:d.contato,
+          dataEntrada: nowISO(), status:'ativo', perfil:'Novato', dataNascimento:d.dataNascimento, serie:d.serie,
+          turma:d.turma, turno:d.turno, tamanhoCamisa:d.tamanhoCamisa, anoEntrada:d.anoEntrada };
+        DB.members.push(novoMembro);
+        u.memberId = novoMembro.id;
+        saveMembersNeeded = true;
+      }
+      await saveUsers();
+      if(saveMembersNeeded) await saveMembers();
+      await addLog(SESSION.nome, `Aprovou o acesso de ${u.nome} (${roleLabel(u.role)})${saveMembersNeeded?' e criou o cadastro de membro correspondente':''}.`);
+      toast('Usuário aprovado.'); render();
+    };
+  });
+  document.querySelectorAll('[data-member-select]').forEach(el=>{
+    el.onchange = async ()=>{
+      const u = DB.users.find(x=>x.id===el.dataset.memberSelect);
+      if(u){ u.memberId = el.value || null; await saveUsers(); await addLog(SESSION.nome, `Atualizou o membro vinculado à conta de ${u.nome}.`); toast('Vínculo atualizado.'); if(SESSION.id===u.id) SESSION.memberId = u.memberId; render(); }
+    };
+  });
+  document.querySelectorAll('[data-reset-password]').forEach(el=>{
+    el.onclick = async ()=>{
+      const u = DB.users.find(x=>x.id===el.dataset.resetPassword);
+      if(!u) return;
+      const temp = genTempPassword();
+      u.senha = temp; u.resetRequested = false; u.resetRequestedAt = null;
+      await saveUsers();
+      await addLog(SESSION.nome, `Gerou uma nova senha temporária para ${u.nome}.`);
+      toast('Nova senha gerada. Confira o e-mail preparado para envio.');
+      const subject = encodeURIComponent('Nova senha de acesso — HYDRA Sustain');
+      const body = encodeURIComponent(`Olá, ${u.nome}!\n\nSua senha de acesso ao HYDRA Sustain foi redefinida.\n\nNova senha temporária: ${temp}\n\nEntre no sistema com essa senha e, por segurança, troque-a em Configurações → Minha conta assim que possível.`);
+      window.location.href = `mailto:${u.email}?subject=${subject}&body=${body}`;
+      render();
+    };
+  });
+  document.querySelectorAll('[data-reject-user]').forEach(el=>{
+    el.onclick = async ()=>{
+      const u = DB.users.find(x=>x.id===el.dataset.rejectUser);
+      if(u){ u.status='rejeitado'; await saveUsers(); await addLog(SESSION.nome, `Recusou o cadastro de ${u.nome}.`); render(); }
+    };
+  });
+  document.querySelectorAll('[data-deactivate-user]').forEach(el=>{
+    el.onclick = async ()=>{
+      const u = DB.users.find(x=>x.id===el.dataset.deactivateUser);
+      if(u){ u.status='inativo'; await saveUsers(); await addLog(SESSION.nome, `Desativou o acesso de ${u.nome}.`); render(); }
+    };
+  });
+
+  // cronograma
+  const newEventBtn = document.getElementById('newEventBtn');
+  if(newEventBtn) newEventBtn.onclick = ()=>{ MODAL={type:'eventForm', payload:{}}; render(); };
+  document.querySelectorAll('[data-edit-event]').forEach(el=>{
+    el.onclick = ()=>{ const ev = DB.events.find(x=>x.id===el.dataset.editEvent); MODAL={type:'eventForm', payload:{event:ev}}; render(); };
+  });
+  document.querySelectorAll('[data-del-event]').forEach(el=>{
+    el.onclick = async ()=>{
+      if(!confirm('Remover esta atividade da agenda?')) return;
+      DB.events = DB.events.filter(x=>x.id!==el.dataset.delEvent);
+      await saveEvents(); await addLog(SESSION.nome, 'Removeu uma atividade do cronograma.'); render();
+    };
+  });
+
+  // aparência
+  const themeForm = document.getElementById('themeForm');
+  if(themeForm) themeForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(themeForm);
+    const theme = { accent:fd.get('accent'), bg:fd.get('bg'), text:fd.get('text') };
+    await saveTheme(theme);
+    toast('Cores salvas.'); render();
+  };
+  const resetThemeBtn = document.getElementById('resetThemeBtn');
+  if(resetThemeBtn) resetThemeBtn.onclick = async ()=>{
+    await saveTheme(null); toast('Cores padrão restauradas.'); render();
+  };
+
+  // config
+  const settingsForm = document.getElementById('settingsForm');
+  if(settingsForm) settingsForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(settingsForm);
+    DB.settings.teamName = fd.get('teamName');
+    DB.settings.adminEmail = fd.get('adminEmail');
+    await saveSettings(); await addLog(SESSION.nome,'Atualizou configurações do sistema.');
+    toast('Configurações salvas.'); render();
+  };
+  const pwForm = document.getElementById('pwForm');
+  if(pwForm) pwForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(pwForm);
+    const s1 = fd.get('senha'), s2 = fd.get('senha2');
+    if(!s1){ toast('Informe uma nova senha.'); return; }
+    if(s1!==s2){ toast('As senhas não coincidem.'); return; }
+    SESSION.senha = s1;
+    const u = DB.users.find(x=>x.id===SESSION.id); if(u) u.senha = s1;
+    await saveUsers(); toast('Senha atualizada.'); pwForm.reset();
+  };
+  const mailBtn = document.getElementById('mailReportBtn');
+  if(mailBtn) mailBtn.onclick = ()=> sendMailReport();
+  const dlJson = document.getElementById('downloadJsonBtn');
+  if(dlJson) dlJson.onclick = ()=> downloadFile('relatorio_equipe.json', JSON.stringify(DB, null, 2), 'application/json');
+  const dlTxt = document.getElementById('downloadTxtBtn');
+  if(dlTxt) dlTxt.onclick = ()=> downloadFile('relatorio_equipe.txt', buildReportText(), 'text/plain');
+  const dlAppCfg = document.getElementById('downloadAppBtnCfg');
+  if(dlAppCfg) dlAppCfg.onclick = ()=> downloadAppCopy();
+
+  const syncForm = document.getElementById('syncForm');
+  if(syncForm) syncForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(syncForm);
+    DB.settings.syncEnabled = fd.get('syncEnabled') === 'on';
+    DB.settings.syncBinId = (fd.get('syncBinId')||'').trim();
+    DB.settings.syncApiKey = (fd.get('syncApiKey')||'').trim();
+    await saveSettings();
+    toast('Configuração de sincronização salva.'); render();
+  };
+  const syncPullBtn = document.getElementById('syncPullBtn');
+  if(syncPullBtn) syncPullBtn.onclick = async ()=>{
+    if(!syncConfigured()){ toast('Configure e salve o Bin ID e a chave primeiro.'); return; }
+    toast('Buscando dados da nuvem...');
+    const r = await syncPull();
+    SYNC_STATUS = r.ok ? 'ok' : 'erro';
+    toast(r.ok ? 'Dados atualizados a partir da nuvem.' : `Falha ao buscar: ${r.reason}`);
+    render();
+  };
+  const syncPushBtn = document.getElementById('syncPushBtn');
+  if(syncPushBtn) syncPushBtn.onclick = async ()=>{
+    if(!syncConfigured()){ toast('Configure e salve o Bin ID e a chave primeiro.'); return; }
+    toast('Enviando dados para a nuvem...');
+    const r = await syncPush();
+    SYNC_STATUS = r.ok ? 'ok' : 'erro';
+    toast(r.ok ? 'Dados enviados para a nuvem.' : `Falha ao enviar: ${r.reason}`);
+    render();
+  };
+
+  const sourceBox = document.getElementById('sourceCodeBox');
+  const dlEditedBtn = document.getElementById('downloadEditedSourceBtn');
+  if(dlEditedBtn) dlEditedBtn.onclick = ()=>{
+    const code = sourceBox ? sourceBox.value : PRISTINE_HTML;
+    downloadFile('HYDRA_Sustain_editado.html', code, 'text/html');
+    toast('Código baixado — abra o novo arquivo para usar sua versão editada.');
+  };
+  const copySourceBtn = document.getElementById('copySourceBtn');
+  if(copySourceBtn) copySourceBtn.onclick = ()=>{
+    const code = sourceBox ? sourceBox.value : PRISTINE_HTML;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(code).then(()=>toast('Código copiado para a área de transferência.')).catch(()=>{ if(sourceBox){ sourceBox.select(); } toast('Selecione e copie manualmente (Ctrl/Cmd+C).'); });
+    } else if(sourceBox){ sourceBox.select(); toast('Selecione e copie manualmente (Ctrl/Cmd+C).'); }
+  };
+  const resetSourceBtn = document.getElementById('resetSourceBtn');
+  if(resetSourceBtn) resetSourceBtn.onclick = ()=>{ if(sourceBox){ sourceBox.value = PRISTINE_HTML; toast('Código original restaurado no campo de edição.'); } };
+
+  // personalização de itens do sistema
+  const subteamForm = document.getElementById('addSubteamForm');
+  if(subteamForm) subteamForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(subteamForm);
+    const val = (fd.get('novaSubequipe')||'').trim();
+    if(!val) return;
+    DB.settings.subteams = DB.settings.subteams || [];
+    if(!DB.settings.subteams.includes(val)) DB.settings.subteams.push(val);
+    await saveSettings(); await addLog(SESSION.nome, `Adicionou a subequipe "${val}".`);
+    render();
+  };
+  document.querySelectorAll('[data-del-subteam]').forEach(el=>{
+    el.onclick = async ()=>{
+      DB.settings.subteams = (DB.settings.subteams||[]).filter(s=>s!==el.dataset.delSubteam);
+      await saveSettings(); render();
+    };
+  });
+  const absTypeForm = document.getElementById('addAbsTypeForm');
+  if(absTypeForm) absTypeForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(absTypeForm);
+    const val = (fd.get('novoTipoAusencia')||'').trim();
+    if(!val) return;
+    DB.settings.absenceTypes = DB.settings.absenceTypes || [];
+    if(!DB.settings.absenceTypes.includes(val)) DB.settings.absenceTypes.push(val);
+    await saveSettings(); await addLog(SESSION.nome, `Adicionou o tipo de ausência "${val}".`);
+    render();
+  };
+  document.querySelectorAll('[data-del-abstype]').forEach(el=>{
+    el.onclick = async ()=>{
+      DB.settings.absenceTypes = (DB.settings.absenceTypes||[]).filter(s=>s!==el.dataset.delAbstype);
+      await saveSettings(); render();
+    };
+  });
+  const alertForm = document.getElementById('alertThresholdForm');
+  if(alertForm) alertForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(alertForm);
+    DB.settings.alertThreshold = Math.max(1, Number(fd.get('alertThreshold'))||3);
+    await saveSettings(); await addLog(SESSION.nome, 'Atualizou o limite de alerta de faltas.');
+    toast('Limite de alerta atualizado.'); render();
+  };
+}
+
+async function setAbsStatus(id, status){
+  const a = DB.absences.find(x=>x.id===id);
+  if(a){ a.status=status; a.avaliadoPor = SESSION.nome; await saveAbsences(); const mem = DB.members.find(m=>m.id===a.memberId); await addLog(SESSION.nome, `${status==='Aprovada'?'Aprovou':'Rejeitou'} a ausência de ${mem?mem.nome:'membro'} (${fmtDate(a.data)}).`); }
+}
+
+function buildReportText(){
+  const m = computeMonitoring();
+  let t = `RELATÓRIO — ${DB.settings.teamName || 'Equipe de Robótica'}\nGerado em: ${fmtDateTime(nowISO())}\n\n`;
+  t += `MEMBROS ATIVOS: ${m.activeMembers.length} de ${DB.members.length}\n`;
+  t += `AUSÊNCIAS PENDENTES DE AVALIAÇÃO: ${m.pendingAbsences.length}\n`;
+  t += `TAXA DE JUSTIFICAÇÃO DE AUSÊNCIAS: ${m.taxaJustificacao}%\n`;
+  t += `METAS DE PDP CONCLUÍDAS: ${m.concluidoPdp} de ${m.totalPdp}\n\n`;
+  t += `ALERTAS DE FREQUÊNCIA (${DB.settings.alertThreshold||3}+ ausências em 30 dias):\n`;
+  t += m.alertMembers.length ? m.alertMembers.map(a=>` - ${a.member.nome}: ${a.count} ausências\n`).join('') : ' - Nenhum\n';
+  t += `\nMETAS DE PDP ATRASADAS:\n`;
+  t += m.overduePdp.length ? m.overduePdp.map(p=>{ const mem=DB.members.find(x=>x.id===p.memberId); return ` - ${mem?mem.nome:'—'}: ${p.area} (prazo ${fmtDate(p.prazo)})\n`; }).join('') : ' - Nenhuma\n';
+  t += `\nAUSÊNCIAS PENDENTES:\n`;
+  t += m.pendingAbsences.length ? m.pendingAbsences.map(a=>{ const mem=DB.members.find(x=>x.id===a.memberId); return ` - ${mem?mem.nome:'—'} em ${fmtDate(a.data)}: ${a.tipo} — "${a.justificativa||'sem justificativa'}"\n`; }).join('') : ' - Nenhuma\n';
+  return t;
+}
+function readFileAsDataURL(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+function downloadFile(filename, content, mime){
+  const blob = new Blob([content], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+function sendMailReport(){
+  if(!DB.settings.adminEmail){ toast('Configure o e-mail do administrador primeiro.'); return; }
+  const subject = encodeURIComponent(`Relatório da equipe — ${DB.settings.teamName || 'Robótica'} — ${fmtDate(nowISO())}`);
+  const body = encodeURIComponent(buildReportText());
+  window.location.href = `mailto:${DB.settings.adminEmail}?subject=${subject}&body=${body}`;
+}
+
+/* ---------------------- EVENTS: MODAL ---------------------- */
+function attachModalEvents(){
+  const overlay = document.getElementById('modalOverlay');
+  if(overlay) overlay.addEventListener('mousedown', (e)=>{ if(e.target===overlay){ MODAL=null; render(); } });
+  const closeBtn = document.getElementById('modalCloseBtn');
+  if(closeBtn) closeBtn.onclick = ()=>{ MODAL=null; render(); };
+  const cancelBtn = document.getElementById('cancelFormBtn');
+  if(cancelBtn) cancelBtn.onclick = ()=>{ MODAL = MODAL.payload && MODAL.payload.returnToMember ? {type:'member', memberId:MODAL.payload.returnToMember, tab:MODAL.payload.returnTab||'perfil'} : null; render(); };
+
+  if(MODAL.type==='member'){
+    document.querySelectorAll('[data-tab]').forEach(el=>{ el.onclick = ()=>{ MODAL.tab = el.dataset.tab; render(); }; });
+    const editBtn = document.getElementById('editMemberBtn');
+    if(editBtn) editBtn.onclick = ()=>{ const mem = DB.members.find(m=>m.id===MODAL.memberId); MODAL = {type:'memberForm', payload:{member:mem, returnToMember:mem.id}}; render(); };
+    const resendLinkBtn = document.getElementById('resendLinkBtn');
+    if(resendLinkBtn) resendLinkBtn.onclick = async ()=>{
+      const mem = DB.members.find(m=>m.id===MODAL.memberId);
+      if(mem && mem.email){ sendMemberAccessLink(mem); await addLog(SESSION.nome, `Reenviou o link de acesso ao programa para ${mem.nome} (${mem.email}).`); toast('E-mail de acesso preparado.'); }
+    };
+    const removeBtn = document.getElementById('removeMemberBtn');
+    if(removeBtn) removeBtn.onclick = async ()=>{
+      if(!confirm('Remover este membro e todos os seus registros associados?')) return;
+      const id = MODAL.memberId;
+      DB.members = DB.members.filter(m=>m.id!==id);
+      DB.schedules = DB.schedules.filter(s=>s.memberId!==id);
+      DB.absences = DB.absences.filter(a=>a.memberId!==id);
+      DB.pdp = DB.pdp.filter(p=>p.memberId!==id);
+      DB.users.forEach(u=>{ if(u.memberId===id) u.memberId=null; });
+      await Promise.all([saveMembers(), saveSchedules(), saveAbsences(), savePdp(), saveUsers()]);
+      await addLog(SESSION.nome, 'Removeu um membro da equipe.');
+      MODAL = null; render();
+    };
+    const addSchedBtn = document.getElementById('addSchedBtn');
+    if(addSchedBtn) addSchedBtn.onclick = ()=>{ MODAL = {type:'schedForm', payload:{memberId:MODAL.memberId, returnToMember:MODAL.memberId, returnTab:'horarios'}}; render(); };
+    document.querySelectorAll('[data-del-sched]').forEach(el=>{
+      el.onclick = async ()=>{ DB.schedules = DB.schedules.filter(s=>s.id!==el.dataset.delSched); await saveSchedules(); render(); };
+    });
+    const addAbsBtn = document.getElementById('addAbsBtn');
+    if(addAbsBtn) addAbsBtn.onclick = ()=>{ MODAL = {type:'absForm', payload:{memberId:MODAL.memberId, returnToMember:MODAL.memberId, returnTab:'ausencias'}}; render(); };
+    document.querySelectorAll('[data-approve-abs]').forEach(el=>{ el.onclick = async ()=>{ await setAbsStatus(el.dataset.approveAbs,'Aprovada'); render(); }; });
+    document.querySelectorAll('[data-reject-abs]').forEach(el=>{ el.onclick = async ()=>{ await setAbsStatus(el.dataset.rejectAbs,'Rejeitada'); render(); }; });
+    const addPdpBtn = document.getElementById('addPdpBtn');
+    if(addPdpBtn) addPdpBtn.onclick = ()=>{ MODAL = {type:'pdpForm', payload:{memberId:MODAL.memberId, returnToMember:MODAL.memberId, returnTab:'pdp'}}; render(); };
+    document.querySelectorAll('[data-edit-pdp]').forEach(el=>{
+      el.onclick = ()=>{ const pd = DB.pdp.find(x=>x.id===el.dataset.editPdp); MODAL = {type:'pdpForm', payload:{pdp:pd, memberId:MODAL.memberId, returnToMember:MODAL.memberId, returnTab:'pdp'}}; render(); };
+    });
+    document.querySelectorAll('[data-del-pdp]').forEach(el=>{
+      el.onclick = async ()=>{ DB.pdp = DB.pdp.filter(x=>x.id!==el.dataset.delPdp); await savePdp(); render(); };
+    });
+    return;
+  }
+
+  const memberForm = document.getElementById('memberFormEl');
+  if(memberForm) memberForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(memberForm);
+    const fields = { nome:fd.get('nome'), subequipe:fd.get('subequipe'), funcao:fd.get('funcao'), email:fd.get('email'), contato:fd.get('contato'), dataEntrada:fd.get('dataEntrada'), status:fd.get('status'),
+      perfil:fd.get('perfil'), dataNascimento:fd.get('dataNascimento'), serie:fd.get('serie'), turma:fd.get('turma'), turno:fd.get('turno'), tamanhoCamisa:fd.get('tamanhoCamisa'), anoEntrada:Number(fd.get('anoEntrada'))||null };
+    const existing = MODAL.payload.member;
+    const enviarLink = fd.get('enviarLink')==='on';
+    let novoMembroCriado = null;
+    if(existing){
+      Object.assign(existing, fields);
+      await addLog(SESSION.nome, `Editou os dados de ${existing.nome}.`);
+    } else {
+      const nm = { id:uid(), ...fields };
+      if(!nm.funcao) nm.funcao='Membro'; if(!nm.dataEntrada) nm.dataEntrada = nowISO(); if(!nm.status) nm.status='ativo';
+      DB.members.push(nm);
+      novoMembroCriado = nm;
+      await addLog(SESSION.nome, `Cadastrou o novo membro ${nm.nome}.`);
+    }
+    await saveMembers();
+    if(novoMembroCriado && enviarLink && novoMembroCriado.email){
+      sendMemberAccessLink(novoMembroCriado);
+      await addLog(SESSION.nome, `Enviou o link de acesso ao programa para ${novoMembroCriado.nome} (${novoMembroCriado.email}).`);
+    }
+    MODAL = MODAL.payload.returnToMember ? {type:'member', memberId:MODAL.payload.returnToMember, tab:'perfil'} : null;
+    render();
+  };
+
+  const schedForm = document.getElementById('schedFormEl');
+  if(schedForm) schedForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(schedForm);
+    const memberId = MODAL.payload.memberId || fd.get('memberId');
+    if(!memberId){ toast('Selecione um membro.'); return; }
+    DB.schedules.push({ id:uid(), memberId, dia:fd.get('dia'), inicio:fd.get('inicio'), fim:fd.get('fim'), local:fd.get('local') });
+    await saveSchedules();
+    const mem = DB.members.find(m=>m.id===memberId);
+    await addLog(SESSION.nome, `Adicionou horário para ${mem?mem.nome:'membro'}.`);
+    MODAL = MODAL.payload.returnToMember ? {type:'member', memberId:MODAL.payload.returnToMember, tab:'horarios'} : null;
+    render();
+  };
+
+  const absForm = document.getElementById('absFormEl');
+  if(absForm) absForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(absForm);
+    let memberId = MODAL.payload.memberId || fd.get('memberId');
+    if(!memberId){ toast('Selecione um membro.'); return; }
+    DB.absences.push({ id:uid(), memberId, data:fd.get('data'), tipo:fd.get('tipo'), justificativa:fd.get('justificativa'), status:'Pendente', registradoEm: nowISO() });
+    await saveAbsences();
+    const mem = DB.members.find(m=>m.id===memberId);
+    await addLog(SESSION.nome, `Registrou ausência de ${mem?mem.nome:'membro'} em ${fmtDate(fd.get('data'))}.`);
+    toast('Ausência registrada.');
+    MODAL = MODAL.payload.returnToMember ? {type:'member', memberId:MODAL.payload.returnToMember, tab:'ausencias'} : null;
+    render();
+  };
+
+  const eventForm = document.getElementById('eventFormEl');
+  if(eventForm) eventForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(eventForm);
+    const existing = MODAL.payload.event;
+    const data = { titulo:fd.get('titulo'), data:fd.get('data'), horario:fd.get('horario'), local:fd.get('local'), descricao:fd.get('descricao') };
+    if(existing){ Object.assign(existing, data); await addLog(SESSION.nome, `Editou a atividade "${data.titulo}" do cronograma.`); }
+    else { DB.events.push({ id:uid(), ...data }); await addLog(SESSION.nome, `Adicionou a atividade "${data.titulo}" ao cronograma.`); }
+    await saveEvents();
+    MODAL = null; render();
+  };
+
+  const pdpForm = document.getElementById('pdpFormEl');
+  if(pdpForm) pdpForm.onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(pdpForm);
+    const existing = MODAL.payload.pdp;
+    const memberId = MODAL.payload.memberId || (existing && existing.memberId);
+    const data = { area:fd.get('area'), nivelAtual:Number(fd.get('nivelAtual')), nivelMeta:Number(fd.get('nivelMeta')), progresso:Number(fd.get('progresso')), prazo:fd.get('prazo'), status:fd.get('status'), acoes:fd.get('acoes') };
+    const file = fd.get('arquivo');
+    if(file && file.size > 0){
+      if(file.size > 2*1024*1024){ toast('Arquivo muito grande. Limite de 2MB.'); return; }
+      try{
+        const dataUrl = await readFileAsDataURL(file);
+        data.anexo = { nome:file.name, tipo:file.type, tamanho:file.size, dados:dataUrl };
+      }catch(err){ toast('Não foi possível ler o arquivo.'); return; }
+    } else if(fd.get('removerAnexo')==='1'){
+      data.anexo = null;
+    }
+    if(existing){ Object.assign(existing, data); }
+    else { DB.pdp.push({ id:uid(), memberId, ...data }); }
+    await savePdp();
+    const mem = DB.members.find(m=>m.id===memberId);
+    await addLog(SESSION.nome, `Atualizou plano de desenvolvimento de ${mem?mem.nome:'membro'}.`);
+    MODAL = MODAL.payload.returnToMember ? {type:'member', memberId:MODAL.payload.returnToMember, tab:'pdp'} : null;
+    render();
+  };
+}
+
+/* ---------------------- PWA: instalação e service worker ---------------------- */
+let DEFERRED_INSTALL_PROMPT = null;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  DEFERRED_INSTALL_PROMPT = e;
+});
+window.addEventListener('appinstalled', ()=>{
+  DEFERRED_INSTALL_PROMPT = null;
+  toast('HYDRA Sustain instalado com sucesso!');
+});
+function installApp(){
+  if(DEFERRED_INSTALL_PROMPT){
+    DEFERRED_INSTALL_PROMPT.prompt();
+    DEFERRED_INSTALL_PROMPT.userChoice.finally(()=>{ DEFERRED_INSTALL_PROMPT = null; });
+  } else {
+    toast('Para instalar: no Chrome/Edge use o menu ⋮ → "Instalar app". No celular Android, "Adicionar à tela inicial". No iPhone/iPad (Safari), toque em Compartilhar → "Adicionar à Tela de Início".');
+  }
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    try{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }catch(e){}
+  });
+}
+
+/* ---------------------- BOOT ---------------------- */
+(async function boot(){
+  if(window.location.hash === '#cadastro') AUTH_MODE = 'register';
+  render();
+  await loadAll();
+  render();
+})();
+</script>
+</body>
+</html>
